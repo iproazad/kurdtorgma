@@ -1,24 +1,36 @@
 import { Injectable } from '@angular/core';
 import { GoogleGenAI } from '@google/genai';
 
-// Assume process.env.API_KEY is available in the execution environment.
-declare const process: {
-  env: {
-    API_KEY: string;
-  };
-};
-
 @Injectable({
   providedIn: 'root'
 })
 export class GeminiService {
-  private ai: GoogleGenAI;
+  private ai: GoogleGenAI | null = null;
 
-  constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  /**
+   * Initializes the GoogleGenAI client with the provided API key.
+   * @param apiKey The user's Gemini API key.
+   * @returns True if initialization is successful, false otherwise.
+   */
+  initialize(apiKey: string): boolean {
+    if (!apiKey) {
+      console.error("API Key is required for initialization.");
+      return false;
+    }
+    try {
+      this.ai = new GoogleGenAI({ apiKey });
+      return true;
+    } catch (e) {
+      console.error("Failed to initialize GoogleGenAI:", e);
+      this.ai = null;
+      return false;
+    }
   }
 
   private async generateContent(prompt: string, temperature: number, thinkingBudget?: number): Promise<string> {
+    if (!this.ai) {
+      throw new Error('Gemini Service has not been initialized. Please provide an API Key.');
+    }
     try {
       const response = await this.ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -36,6 +48,14 @@ export class GeminiService {
        }
        throw new Error('فشل الاتصال بخدمة Gemini.');
     }
+  }
+  
+  /**
+   * Performs a simple, low-cost call to verify if the API key is valid.
+   */
+  async verifyApiKey(): Promise<void> {
+    // This is a simple request to test the key.
+    await this.generateContent('hi', 0, 0);
   }
 
   async translateText(text: string, sourceLangName: string, targetLangName:string): Promise<string> {
