@@ -22,7 +22,6 @@ export class GeminiService {
       return true;
     } catch (e) {
       console.error("Failed to initialize GoogleGenAI:", e);
-      this.ai = null;
       return false;
     }
   }
@@ -43,22 +42,15 @@ export class GeminiService {
       return response.text.trim();
     } catch (error) {
        console.error('Error calling Gemini API:', error);
+       // You can add more specific error handling here, e.g., for API key errors
        if (error.toString().includes('API key not valid')) {
          throw new Error('مفتاح API غير صالح. يرجى التحقق منه.');
        }
        throw new Error('فشل الاتصال بخدمة Gemini.');
     }
   }
-  
-  /**
-   * Performs a simple, low-cost call to verify if the API key is valid.
-   */
-  async verifyApiKey(): Promise<void> {
-    // This is a simple request to test the key.
-    await this.generateContent('hi', 0, 0);
-  }
 
-  async translateText(text: string, sourceLangName: string, targetLangName:string): Promise<string> {
+  async translateText(text: string, sourceLangName: string, targetLangName: string): Promise<string> {
     const prompt = `You are a professional translator. Translate the following text from "${sourceLangName}" to "${targetLangName}". Provide only the translated text, without any additional explanations, introductions, or quotation marks.
     
 Text to translate:

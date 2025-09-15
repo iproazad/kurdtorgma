@@ -31,6 +31,7 @@ export class AppComponent {
   apiKey = signal<string>('');
   apiKeySet = signal<boolean>(false);
   apiKeyError = signal<string | null>(null);
+  isVerifyingKey = signal<boolean>(false);
 
   // --- State for Translator ---
   languages: Language[] = [
@@ -77,16 +78,17 @@ export class AppComponent {
   // --- API Key Methods ---
   async saveApiKey(): Promise<void> {
     this.apiKeyError.set(null);
+    this.isVerifyingKey.set(true);
     const key = this.apiKey().trim();
+
     if (!key) {
       this.apiKeyError.set('يرجى إدخال مفتاح API صالح.');
+      this.isVerifyingKey.set(false);
       return;
     }
     
-    // Initialize the service and then perform a quick test call
     if (this.geminiService.initialize(key)) {
       try {
-        // Test call to verify the key is valid
         await this.geminiService.verifyApiKey();
         sessionStorage.setItem('geminiApiKey', key);
         this.apiKeySet.set(true);
@@ -97,6 +99,7 @@ export class AppComponent {
     } else {
       this.apiKeyError.set('فشل تهيئة خدمة Gemini. يرجى التحقق من المفتاح والمحاولة مرة أخرى.');
     }
+    this.isVerifyingKey.set(false);
   }
 
   // --- Translation Methods ---
