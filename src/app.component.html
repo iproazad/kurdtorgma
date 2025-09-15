@@ -51,7 +51,11 @@
         <textarea [ngModel]="sourceText()" (ngModelChange)="sourceText.set($event)"
                   placeholder="اكتب النص هنا..."
                   class="w-full h-48 md:h-64 p-4 bg-slate-800/60 border border-slate-700 rounded-lg resize-none text-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"></textarea>
-         <span class="absolute bottom-3 left-3 text-xs text-slate-500">{{ sourceText().length }} / 5000</span>
+         <span class="absolute bottom-3 left-3 text-xs"
+              [class.text-slate-500]="sourceText().length < 4800"
+              [class.text-yellow-400]="sourceText().length >= 4800 && sourceText().length < 5000"
+              [class.text-red-500]="sourceText().length >= 5000"
+         >{{ sourceText().length }} / 5000</span>
       </div>
       <div class="relative w-full h-48 md:h-64 p-4 bg-slate-800/60 border border-slate-700 rounded-lg text-lg text-slate-100 overflow-y-auto">
         @if (isLoading()) {
