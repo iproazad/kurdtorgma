@@ -6,21 +6,15 @@ import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 })
 export class TranslationService {
   private ai: GoogleGenAI | null = null;
+  private readonly apiKeyError = 'A valid Gemini API key is not configured. Please set the API_KEY to use this feature.';
 
   constructor() {
-    // The API key is sourced from environment variables. This check makes
-    // the app robust if the key is not provided in other environments.
     const apiKey = process.env.API_KEY;
-    if (apiKey) {
-      this.ai = new GoogleGenAI({ apiKey: apiKey });
+    if (apiKey && apiKey !== 'DEFAULT_API_KEY') {
+      this.ai = new GoogleGenAI({ apiKey });
     } else {
-      console.error('Gemini API key not found. The translation service will be disabled.');
-    }
-  }
-
-  private ensureAiIsReady(): void {
-    if (!this.ai) {
-      throw new Error('Translation service is not available: API key is missing.');
+      // The app will load, but translation calls will fail with the error below.
+      console.warn(this.apiKeyError);
     }
   }
 
@@ -29,7 +23,10 @@ export class TranslationService {
     sourceLang: string,
     targetLang: string
   ): Promise<string> {
-    this.ensureAiIsReady();
+    if (!this.ai) {
+      throw new Error(this.apiKeyError);
+    }
+
     if (!text.trim()) {
       return '';
     }
@@ -41,7 +38,7 @@ Text to translate:
 "${text}"`;
 
     try {
-      const response: GenerateContentResponse = await this.ai!.models.generateContent({
+      const response: GenerateContentResponse = await this.ai.models.generateContent({
         model: model,
         contents: prompt,
         config: {
@@ -53,8 +50,10 @@ Text to translate:
       return response.text.trim();
     } catch (error) {
       console.error('Error translating text:', error);
-      // Propagate the error so the component can handle it.
       if (error instanceof Error) {
+          if (error.message.includes('API key not valid')) {
+              throw new Error('The provided Gemini API key is invalid.');
+          }
           throw new Error(`Translation failed: ${error.message}`);
       }
       throw new Error('An unknown error occurred during translation.');
@@ -62,11 +61,11 @@ Text to translate:
   }
 
   async detectLanguage(text: string): Promise<string> {
+    // If the API key is missing, fail gracefully for this background feature.
     if (!this.ai) {
-      // Fail silently if service is not configured
-      return ''; 
+      return '';
     }
-
+    
     if (text.trim().length < 10) {
       return '';
     }
