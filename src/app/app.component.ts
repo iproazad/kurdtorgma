@@ -76,17 +76,25 @@ export class AppComponent {
   }
   
   // --- API Key Methods ---
-  saveApiKey(): void {
+  async saveApiKey(): Promise<void> {
     this.apiKeyError.set(null);
     const key = this.apiKey().trim();
     if (!key) {
       this.apiKeyError.set('يرجى إدخال مفتاح API صالح.');
       return;
     }
-    // Try to initialize the service with the new key
+    
+    // Initialize the service and then perform a quick test call
     if (this.geminiService.initialize(key)) {
-      sessionStorage.setItem('geminiApiKey', key);
-      this.apiKeySet.set(true);
+      try {
+        // Test call to verify the key is valid
+        await this.geminiService.verifyApiKey();
+        sessionStorage.setItem('geminiApiKey', key);
+        this.apiKeySet.set(true);
+      } catch (e) {
+         this.apiKeyError.set('المفتاح الذي أدخلته غير صالح أو حدث خطأ في الشبكة. يرجى التحقق منه.');
+         console.error(e);
+      }
     } else {
       this.apiKeyError.set('فشل تهيئة خدمة Gemini. يرجى التحقق من المفتاح والمحاولة مرة أخرى.');
     }
