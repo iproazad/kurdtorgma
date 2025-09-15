@@ -1,78 +1,66 @@
-
-import { GoogleGenAI } from "@google/genai";
-
 /**
- * Generates a logo image using the Gemini API.
+ * Generates a logo image by calling our Netlify serverless function.
  * @param prompt The text prompt describing the desired logo.
  * @returns A promise that resolves to the base64 encoded image string.
  */
 export const generateLogoImage = async (prompt: string): Promise<string> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API key is not configured. Please contact the administrator.");
-  }
-  
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
   try {
-    const response = await ai.models.generateImages({
-      model: 'imagen-4.0-generate-001',
-      prompt: prompt,
-      config: {
-        numberOfImages: 1,
-        outputMimeType: 'image/png', // Use PNG for better quality and potential transparency
-        aspectRatio: '1:1',
-      },
+    const response = await fetch('/api/generateLogo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
     });
 
-    if (response.generatedImages && response.generatedImages.length > 0) {
-      const image = response.generatedImages[0];
-      if (image.image?.imageBytes) {
-        return image.image.imageBytes;
-      }
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Use the error message from the serverless function's response
+      throw new Error(data.error || 'An unknown error occurred while generating the logo.');
     }
     
-    throw new Error('No image was generated. The response might have been blocked due to safety policies.');
+    if (!data.imageB64) {
+      throw new Error('The server did not return an image.');
+    }
+
+    return data.imageB64;
 
   } catch (error) {
-    console.error('Error generating image with Gemini:', error);
-    if (error instanceof Error && error.message.includes('API key not valid')) {
-       throw new Error('The configured API key is not valid. Please contact the administrator.');
-    }
-    throw new Error('Failed to generate logo. This could be due to safety policies or an invalid prompt.');
+    console.error('Error calling generateLogo function:', error);
+    // Re-throw the error to be caught by the UI component
+    throw error;
   }
 };
 
 /**
- * Translates text into a specified language/dialect using the Gemini API.
+ * Translates text by calling our Netlify serverless function.
  * @param text The text to translate.
  * @param targetLanguage The target language or dialect.
  * @returns A promise that resolves to the translated text string.
  */
 export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API key is not configured. Please contact the administrator.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-  const prompt = `Translate the following text to ${targetLanguage}. Provide only the translated text, without any additional explanations or introductory phrases.
-
-Text to translate:
-"${text}"`;
-
-  try {
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
+   try {
+    const response = await fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, targetLanguage }),
     });
 
-    return response.text.trim();
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Use the error message from the serverless function's response
+      throw new Error(data.error || 'An unknown error occurred during translation.');
+    }
+    
+    if (typeof data.translation !== 'string') {
+        throw new Error('The server did not return a valid translation.');
+    }
+
+    return data.translation;
 
   } catch (error) {
-    console.error('Error translating text with Gemini:', error);
-    if (error instanceof Error && error.message.includes('API key not valid')) {
-       throw new Error('The configured API key is not valid. Please contact the administrator.');
-    }
-    throw new Error('Failed to translate text. This could be due to safety policies or an unknown error.');
+    console.error('Error calling translate function:', error);
+    // Re-throw the error to be caught by the UI component
+    throw error;
   }
 };
