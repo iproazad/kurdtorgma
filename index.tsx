@@ -1,12 +1,12 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './src/App';
-import './src/styles.css';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideZonelessChangeDetection } from '@angular/core';
+import { AppComponent } from './src/app.component';
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideZonelessChangeDetection(),
+  ]
+}).catch(err => console.error(err));
 
 // AI Studio always uses an `index.tsx` file for all project types.
