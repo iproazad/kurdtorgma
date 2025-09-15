@@ -1,0 +1,59 @@
+<div class="relative w-full">
+  <!-- Button to show selected language and toggle dropdown -->
+  <button 
+    type="button"
+    (click)="toggleDropdown()" 
+    [attr.aria-expanded]="isOpen()" 
+    [attr.aria-controls]="listId()"
+    [attr.aria-label]="ariaLabel()"
+    [class]="'w-full flex items-center bg-slate-900/80 rounded-md py-2 pr-3 pl-3 text-left text-slate-200 focus:ring-2 focus:outline-none transition ' + focusRingColor()">
+    
+    @if (selectedLanguage(); as lang) {
+      <span class="text-lg mr-2 select-none">{{ lang.flag }}</span>
+      <span class="flex-grow truncate">{{ lang.name }}</span>
+    } @else {
+      <span class="flex-grow text-slate-400">{{ placeholder() }}</span>
+    }
+    
+    <!-- Dropdown arrow icon -->
+    <svg class="h-5 w-5 text-slate-400 transition-transform duration-200" [class.rotate-180]="isOpen()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+    </svg>
+  </button>
+
+  <!-- Dropdown panel -->
+  @if (isOpen()) {
+    <div 
+      [id]="listId()" 
+      class="absolute z-10 mt-1 w-full bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 flex flex-col">
+      
+      <!-- Search input field -->
+      <div class="p-2 border-b border-slate-700">
+        <input 
+          type="text" 
+          [value]="searchTerm()"
+          (input)="onSearch($event)"
+          placeholder="Search language..."
+          class="w-full bg-slate-900 rounded-md p-2 text-slate-200 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+          autofocus>
+      </div>
+      
+      <!-- Scrollable list of languages -->
+      <ul class="overflow-y-auto flex-grow" role="listbox">
+        @for(lang of filteredLanguages(); track lang.name) {
+          <li 
+            (click)="selectLanguage(lang.name)" 
+            class="flex items-center px-4 py-2 text-slate-300 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors duration-150"
+            role="option"
+            [attr.aria-selected]="lang.name === selectedLanguageName()">
+            <span class="text-lg mr-3 select-none">{{ lang.flag }}</span>
+            <span class="truncate">{{ lang.name }} <span class="text-slate-400">— {{ lang.nativeName }}</span></span>
+          </li>
+        }
+        @if (filteredLanguages().length === 0) {
+            <li class="px-4 py-3 text-slate-500 text-center">No languages found.</li>
+        }
+      </ul>
+    </div>
+  }
+</div>
