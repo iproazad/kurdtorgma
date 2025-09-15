@@ -2,13 +2,6 @@
 <main class="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-slate-900">
 
   @if (isKeyConfigured()) {
-    @if (!isOnline()) {
-      <div class="fixed top-4 right-4 z-50 flex items-center space-x-2 bg-amber-500 text-black text-sm font-bold px-4 py-2 rounded-full shadow-lg animate-pulse">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
-          <span>Offline</span>
-      </div>
-    }
-
     <!-- App Header -->
     <header class="text-center mb-8">
       <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
@@ -113,14 +106,6 @@
               </div>
             } @else if (translatedText()) {
               <p class="text-lg text-slate-100 whitespace-pre-wrap">{{ translatedText() }}</p>
-              @if (isFromCache()) {
-                  <div class="absolute top-2 left-3 flex items-center space-x-1.5 text-slate-400 text-xs font-medium px-2 py-0.5 rounded-full bg-slate-800 ring-1 ring-slate-700">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.414L11 10.586V6z" clip-rule="evenodd" />
-                      </svg>
-                      <span>From Cache</span>
-                  </div>
-              }
               <div class="absolute top-2 right-2 flex items-center space-x-2">
                   @if (isCopied()) {
                       <div class="text-sm font-medium text-emerald-400 bg-slate-700/50 px-3 py-1 rounded-full pointer-events-none">

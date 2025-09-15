@@ -33,8 +33,6 @@ export class AppComponent {
   isLoading = signal(false);
   error = signal<string | null>(null);
   isCopied = signal(false);
-  isOnline = signal(navigator.onLine);
-  isFromCache = signal(false);
   
   // Language Detection Signals
   detectedLang = signal<string | null>(null);
@@ -69,10 +67,6 @@ export class AppComponent {
   targetLangObject = computed(() => this.languages.find(l => l.name === this.targetLang()));
 
   constructor() {
-    window.addEventListener('online', () => this.isOnline.set(true));
-    window.addEventListener('offline', () => this.isOnline.set(false));
-    this.registerServiceWorker();
-
     // Check for a saved API key on startup
     const savedKey = this.getApiKeyFromStorage();
     if (savedKey) {
@@ -123,35 +117,12 @@ export class AppComponent {
     this.apiKeyInputValue.set((event.target as HTMLInputElement).value);
   }
 
-  // --- Caching Logic ---
-  private getCacheKey(text: string, source: string, target: string): string {
-    return `gemini_translator_cache::${source}::${target}::${text.trim()}`;
-  }
-
-  private saveToCache(key: string, translation: string): void {
-    try {
-      localStorage.setItem(key, translation);
-    } catch (e) {
-      console.error('Failed to save translation to localStorage:', e);
-    }
-  }
-
-  private getFromCache(key: string): string | null {
-    try {
-      return localStorage.getItem(key);
-    } catch (e) {
-      console.error('Failed to read from localStorage:', e);
-      return null;
-    }
-  }
-
   // --- Event Handlers ---
   onSourceTextChange(event: Event): void {
     const value = (event.target as HTMLTextAreaElement).value;
     this.sourceText.set(value);
     this.translatedText.set('');
     this.error.set(null);
-    this.isFromCache.set(false);
     this.detectedLang.set(null);
 
     // Debounce language detection
@@ -167,7 +138,6 @@ export class AppComponent {
     this.sourceLang.set(languageName);
     this.translatedText.set('');
     this.error.set(null);
-    this.isFromCache.set(false);
     this.detectedLang.set(null); // User took manual control, hide detection result
   }
 
@@ -175,7 +145,6 @@ export class AppComponent {
     this.targetLang.set(languageName);
     this.translatedText.set('');
     this.error.set(null);
-    this.isFromCache.set(false);
   }
 
   async handleLanguageDetection(): Promise<void> {
@@ -211,42 +180,25 @@ export class AppComponent {
     this.isLoading.set(true);
     this.error.set(null);
     this.translatedText.set('');
-    this.isFromCache.set(false);
 
-    const cacheKey = this.getCacheKey(source, this.sourceLang(), this.targetLang());
-
-    if (this.isOnline()) {
-      try {
-        const result = await this.translationService.translateText(
-          source,
-          this.sourceLang(),
-          this.targetLang()
-        );
-        this.translatedText.set(result);
-        if (result) {
-          this.saveToCache(cacheKey, result);
-        }
-      } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred. Please try again.';
-        // Specific check for API key errors to revert to the config screen
-        if (errorMessage.toLowerCase().includes('api key') || errorMessage.includes('not set')) {
-          this.isKeyConfigured.set(false);
-          this.apiKeyError.set('Your API key appears to be invalid or is missing. Please check it and try again.');
-        } else {
-          this.error.set(errorMessage);
-        }
-        console.error(e);
-      } finally {
-        this.isLoading.set(false);
-      }
-    } else { // Offline logic
-      const cachedResult = this.getFromCache(cacheKey);
-      if (cachedResult) {
-        this.translatedText.set(cachedResult);
-        this.isFromCache.set(true);
+    try {
+      const result = await this.translationService.translateText(
+        source,
+        this.sourceLang(),
+        this.targetLang()
+      );
+      this.translatedText.set(result);
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred. Please try again.';
+      // Specific check for API key errors to revert to the config screen
+      if (errorMessage.toLowerCase().includes('api key') || errorMessage.includes('not set')) {
+        this.isKeyConfigured.set(false);
+        this.apiKeyError.set('Your API key appears to be invalid or is missing. Please check it and try again.');
       } else {
-        this.error.set('You are offline and this translation is not cached.');
+        this.error.set(errorMessage);
       }
+      console.error(e);
+    } finally {
       this.isLoading.set(false);
     }
   }
@@ -262,7 +214,6 @@ export class AppComponent {
       this.translatedText.set('');
     }
 
-    this.isFromCache.set(false);
     this.error.set(null);
     this.detectedLang.set(null);
     clearTimeout(this.detectionTimeout);
@@ -272,7 +223,6 @@ export class AppComponent {
     this.sourceText.set('');
     this.translatedText.set('');
     this.error.set(null);
-    this.isFromCache.set(false);
     this.detectedLang.set(null);
     clearTimeout(this.detectionTimeout);
   }
@@ -285,22 +235,5 @@ export class AppComponent {
       this.isCopied.set(true);
       setTimeout(() => this.isCopied.set(false), 2000);
     });
-  }
-
-  private registerServiceWorker(): void {
-    if ('serviceWorker' in navigator) {
-      // Wait for the page to be fully loaded before registering the SW.
-      // This prevents the "document is in an invalid state" error.
-      window.addEventListener('load', () => {
-        const swUrl = `${window.location.origin}/sw.js`;
-        navigator.serviceWorker.register(swUrl)
-          .then(registration => {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          })
-          .catch(error => {
-            console.error('ServiceWorker registration failed: ', error);
-          });
-      });
-    }
   }
 }
