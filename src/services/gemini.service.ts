@@ -1,42 +1,71 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
-
-interface GeminiResponse {
-  text: string;
-}
+import { Injectable } from '@angular/core';
+import { GoogleGenAI } from '@google/genai';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GeminiService {
-  private http = inject(HttpClient);
-  private proxyUrl = '/api/gemini-proxy'; 
+  private ai: GoogleGenAI | null = null;
 
-  private async callGeminiProxy(prompt: string, temperature: number, thinkingBudget?: number): Promise<string> {
+  /**
+   * Initializes the GoogleGenAI client with the provided API key.
+   * @param apiKey The user's Gemini API key.
+   * @returns True if initialization is successful, false otherwise.
+   */
+  initialize(apiKey: string): boolean {
+    if (!apiKey) {
+      console.error("API Key is required for initialization.");
+      return false;
+    }
     try {
-      const body = {
-        prompt,
-        action: 'generate', // To differentiate requests if needed in the future
-        temperature,
-        ...(thinkingBudget !== undefined && { thinkingBudget })
-      };
-      const response = await firstValueFrom(this.http.post<GeminiResponse>(this.proxyUrl, body));
-      return response.text;
-    } catch (error) {
-      console.error('Error calling Gemini proxy function:', error);
-      throw new Error('Failed to get response from the server.');
+      this.ai = new GoogleGenAI({ apiKey });
+      return true;
+    } catch (e) {
+      console.error("Failed to initialize GoogleGenAI:", e);
+      this.ai = null;
+      return false;
     }
   }
 
-  async translateText(text: string, sourceLangName: string, targetLangName: string): Promise<string> {
+  private async generateContent(prompt: string, temperature: number, thinkingBudget?: number): Promise<string> {
+    if (!this.ai) {
+      throw new Error('Gemini Service has not been initialized. Please provide an API Key.');
+    }
+    try {
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          temperature,
+          ...(thinkingBudget !== undefined && { thinkingConfig: { thinkingBudget } })
+        }
+      });
+      return response.text.trim();
+    } catch (error) {
+       console.error('Error calling Gemini API:', error);
+       if (error.toString().includes('API key not valid')) {
+         throw new Error('مفتاح API غير صالح. يرجى التحقق منه.');
+       }
+       throw new Error('فشل الاتصال بخدمة Gemini.');
+    }
+  }
+  
+  /**
+   * Performs a simple, low-cost call to verify if the API key is valid.
+   */
+  async verifyApiKey(): Promise<void> {
+    // This is a simple request to test the key.
+    await this.generateContent('hi', 0, 0);
+  }
+
+  async translateText(text: string, sourceLangName: string, targetLangName:string): Promise<string> {
     const prompt = `You are a professional translator. Translate the following text from "${sourceLangName}" to "${targetLangName}". Provide only the translated text, without any additional explanations, introductions, or quotation marks.
     
 Text to translate:
 "${text}"
 `;
-    // For translation, we want a direct, fast response.
-    return this.callGeminiProxy(prompt, 0.3, 0);
+    // For translation, we want a direct, fast response with thinking disabled.
+    return this.generateContent(prompt, 0.3, 0);
   }
 
   async spellCheckText(text: string, sourceLangName: string): Promise<string> {
@@ -45,7 +74,7 @@ Text to translate:
 Text to correct:
 "${text}"
 `;
-    // For spell checking, we want a deterministic, fast response.
-    return this.callGeminiProxy(prompt, 0, 0);
+    // For spell checking, we want a deterministic, fast response with thinking disabled.
+    return this.generateContent(prompt, 0, 0);
   }
 }
