@@ -1,4 +1,3 @@
-
 import { Injectable } from '@angular/core';
 import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 
@@ -6,20 +5,20 @@ import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
   providedIn: 'root'
 })
 export class GeminiService {
-  private ai: GoogleGenAI;
+  private ai: GoogleGenAI | null = null;
 
-  constructor() {
-    // This is a placeholder for the API key which should be provided by the environment.
-    // In a real Applet environment, process.env.API_KEY would be available.
-    const apiKey = (process as any).env.API_KEY;
-    if (!apiKey) {
-      console.error("API_KEY environment variable not set.");
-      // In a real app, you might want to throw an error or handle this more gracefully.
+  initialize(apiKey: string): void {
+    if (!apiKey || !apiKey.trim()) {
+      throw new Error('API Key is required.');
     }
-    this.ai = new GoogleGenAI({ apiKey: apiKey });
+    this.ai = new GoogleGenAI({ apiKey });
   }
 
   async translateText(text: string, sourceLangName: string, targetLangName: string): Promise<string> {
+    if (!this.ai) {
+      throw new Error('Gemini Service not initialized. Please provide an API Key first.');
+    }
+
     const model = 'gemini-2.5-flash';
     const prompt = `You are a professional translator. Translate the following text from "${sourceLangName}" to "${targetLangName}". Provide only the translated text, without any additional explanations, introductions, or quotation marks.
     
@@ -41,6 +40,9 @@ Text to translate:
       return response.text.trim();
     } catch (error) {
       console.error('Error translating text:', error);
+      if (error instanceof Error && error.message.includes('API key not valid')) {
+          throw new Error('مفتاح API المقدم غير صالح. يرجى التحقق منه والمحاولة مرة أخرى.');
+      }
       throw new Error('Failed to get translation from Gemini API.');
     }
   }

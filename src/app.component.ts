@@ -1,4 +1,3 @@
-
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -18,6 +17,12 @@ interface Language {
 export class AppComponent {
   private readonly geminiService = inject(GeminiService);
 
+  // API Key State
+  apiKey = signal<string>('');
+  apiKeySubmitted = signal<boolean>(false);
+  apiKeyError = signal<string | null>(null);
+
+  // Translator State
   languages: Language[] = [
     { code: 'en', name: 'الإنجليزية' },
     { code: 'ar', name: 'العربية (فصحى)' },
@@ -38,6 +43,22 @@ export class AppComponent {
   isLoading = signal<boolean>(false);
   error = signal<string | null>(null);
 
+  submitApiKey(): void {
+    this.apiKeyError.set(null);
+    const key = this.apiKey().trim();
+    if (!key) {
+      this.apiKeyError.set('يرجى إدخال مفتاح API.');
+      return;
+    }
+
+    try {
+      this.geminiService.initialize(key);
+      this.apiKeySubmitted.set(true);
+    } catch (e: any) {
+      this.apiKeyError.set(e.message || 'حدث خطأ غير متوقع.');
+    }
+  }
+
   async handleTranslation(): Promise<void> {
     const text = this.sourceText();
     if (!text.trim()) {
@@ -55,8 +76,14 @@ export class AppComponent {
       
       const result = await this.geminiService.translateText(text, sourceLangName, targetLangName);
       this.translatedText.set(result);
-    } catch (e) {
-      this.error.set('حدث خطأ أثناء الترجمة. يرجى المحاولة مرة أخرى.');
+    } catch (e: any) {
+      if (e instanceof Error && e.message.includes('API key')) {
+          this.error.set(null); // Clear main error
+          this.apiKeySubmitted.set(false);
+          this.apiKeyError.set('مفتاح API غير صالح أو انتهت صلاحيته. يرجى إدخال مفتاح صالح.');
+      } else {
+          this.error.set('حدث خطأ أثناء الترجمة. يرجى المحاولة مرة أخرى.');
+      }
       console.error(e);
     } finally {
       this.isLoading.set(false);
