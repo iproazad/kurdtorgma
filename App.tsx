@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from './components/Header.tsx';
 import Spinner from './components/Spinner.tsx';
@@ -26,9 +27,16 @@ const App: React.FC = () => {
   const [translatedText, setTranslatedText] = useState<string>('');
   const [sourceLang, setSourceLang] = useState<string>('auto');
   const [targetLang, setTargetLang] = useState<string>('ar');
+  
+  const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('gemini-api-key') || '');
+  const [isKeySaved, setIsKeySaved] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    setIsKeySaved(!!localStorage.getItem('gemini-api-key'));
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -36,10 +44,17 @@ const App: React.FC = () => {
     document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
   }, [language]);
 
-  // Fix: Adhered to Gemini API guidelines by removing API key management from the UI.
-  // The API key is now expected to be in `process.env.API_KEY`.
+  const handleSaveKey = () => {
+    if (apiKey.trim()) {
+      localStorage.setItem('gemini-api-key', apiKey.trim());
+      setIsKeySaved(true);
+      setError(null);
+    }
+  };
+
   const handleTranslate = useCallback(async () => {
-    if (!inputText.trim()) {
+    const savedApiKey = localStorage.getItem('gemini-api-key');
+    if (!inputText.trim() || !savedApiKey) {
       return;
     }
     setIsLoading(true);
@@ -47,7 +62,7 @@ const App: React.FC = () => {
     setTranslatedText('');
 
     try {
-      const result = await translateText(inputText, sourceLang, targetLang);
+      const result = await translateText(inputText, sourceLang, targetLang, savedApiKey);
       setTranslatedText(result);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
@@ -56,7 +71,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [inputText, sourceLang, targetLang, t]);
+  }, [inputText, sourceLang, targetLang]);
 
   const handleSwapLanguages = () => {
     if (sourceLang === 'auto') return; // Cannot swap with "Detect Language"
@@ -72,6 +87,32 @@ const App: React.FC = () => {
         <Header />
 
         <main className="mt-6 bg-gray-800/50 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-700">
+            <div className="mb-6">
+              <label htmlFor="api-key-input" className="block mb-2 text-sm font-medium text-gray-300">{t('api.key.label')}</label>
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  id="api-key-input"
+                  className="bg-gray-900 border border-gray-600 text-gray-200 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                  placeholder={t('api.key.placeholder')}
+                  value={apiKey}
+                  onChange={(e) => {
+                    setApiKey(e.target.value);
+                    if (isKeySaved) {
+                        setIsKeySaved(false);
+                    }
+                  }}
+                />
+                <button
+                  onClick={handleSaveKey}
+                  className="text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:outline-none focus:ring-indigo-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                >
+                  {t('api.key.save')}
+                </button>
+              </div>
+              {isKeySaved && <p className="mt-2 text-xs text-green-400">{t('api.key.saved')}</p>}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-center">
                 {/* Source Language */}
                 <div className="flex flex-col gap-2">
@@ -81,7 +122,6 @@ const App: React.FC = () => {
                         className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
                     >
                        {TRANSLATION_LANGUAGES.map(({ code, nameKey }) => (
-                         // Fix: The `t` function expects only one argument.
                          <option key={code} value={code}>{t(nameKey)}</option>
                        ))}
                     </select>
@@ -101,12 +141,11 @@ const App: React.FC = () => {
                          className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
                     >
                         {TRANSLATION_LANGUAGES.filter(l => l.code !== 'auto').map(({ code, nameKey }) => (
-                         // Fix: The `t` function expects only one argument.
                          <option key={code} value={code}>{t(nameKey)}</option>
                        ))}
                     </select>
                      <div className="w-full h-full bg-gray-900 border border-dashed border-gray-600 rounded-lg p-3 text-gray-300 min-h-[158px]">
-                        {isLoading ? <span className="opacity-50">{t('translator.translatingButton')}</span> : translatedText || <span className="opacity-50">{t('translator.translation')}</span>}
+                        {isLoading ? <span className="opacity-50">{t('translator.translatingButton')}...</span> : translatedText || <span className="opacity-50">{t('translator.translation')}</span>}
                      </div>
                 </div>
             </div>
@@ -119,8 +158,7 @@ const App: React.FC = () => {
             <div className="mt-6 flex flex-col items-center">
                 <button
                     onClick={handleTranslate}
-                    // Fix: Removed API key from disabled logic.
-                    disabled={isLoading || !inputText.trim()}
+                    disabled={isLoading || !inputText.trim() || !isKeySaved}
                     className="w-full max-w-xs bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                     {isLoading ? (
@@ -132,6 +170,11 @@ const App: React.FC = () => {
                     t('translator.translateButton')
                     )}
                 </button>
+                {!isKeySaved && (
+                    <p className="mt-3 text-xs text-yellow-400">
+                        {t('api.key.enable.generation')}
+                    </p>
+                )}
             </div>
         </main>
       </div>

@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 
 /**
@@ -5,12 +6,14 @@ import { GoogleGenAI } from "@google/genai";
  * @param text The text to translate.
  * @param sourceLang The source language code (or 'auto' for detection).
  * @param targetLang The target language code.
+ * @param apiKey The Gemini API key.
  * @returns A promise that resolves to the translated text string.
  */
-// Fix: Removed apiKey parameter to adhere to the guideline of using environment variables.
-export const translateText = async (text: string, sourceLang: string, targetLang: string): Promise<string> => {
-  // Fix: The API key must be obtained exclusively from the environment variable `process.env.API_KEY`.
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const translateText = async (text: string, sourceLang: string, targetLang: string, apiKey: string): Promise<string> => {
+  if (!apiKey) {
+    throw new Error('API Key is required.');
+  }
+  const ai = new GoogleGenAI({ apiKey });
 
   const model = 'gemini-2.5-flash';
   
@@ -30,9 +33,8 @@ export const translateText = async (text: string, sourceLang: string, targetLang
     console.error('Detailed error from Gemini API:', error);
     
     if (error instanceof Error) {
-        // Fix: Updated error message to reflect that API key is managed via environment variables.
         if (error.message.includes('API key not valid')) {
-            throw new Error('The API key is not valid. Please check your environment configuration.');
+            throw new Error('The API key is not valid. Please check it and save it again.');
         }
         if (error.message.toLowerCase().includes('billing')) {
             throw new Error('Billing is not enabled for the project. Please check your Google Cloud account and enable billing.');
