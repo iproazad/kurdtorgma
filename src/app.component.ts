@@ -66,6 +66,7 @@ export class AppComponent {
   constructor() {
     window.addEventListener('online', () => this.isOnline.set(true));
     window.addEventListener('offline', () => this.isOnline.set(false));
+    this.registerServiceWorker();
   }
 
   // Computed signal for character count
@@ -227,5 +228,22 @@ export class AppComponent {
       this.isCopied.set(true);
       setTimeout(() => this.isCopied.set(false), 2000);
     });
+  }
+
+  private registerServiceWorker(): void {
+    if ('serviceWorker' in navigator) {
+      // Wait for the page to be fully loaded before registering the SW.
+      // This prevents the "document is in an invalid state" error.
+      window.addEventListener('load', () => {
+        const swUrl = `${window.location.origin}/sw.js`;
+        navigator.serviceWorker.register(swUrl)
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          })
+          .catch(error => {
+            console.error('ServiceWorker registration failed: ', error);
+          });
+      });
+    }
   }
 }
