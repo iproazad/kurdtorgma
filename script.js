@@ -242,7 +242,7 @@ async function saveApiKey(event) {
   if (state.geminiService.initialize(key)) {
     try {
       await state.geminiService.verifyApiKey();
-      sessionStorage.setItem('geminiApiKey', key);
+      localStorage.setItem('geminiApiKey', key);
       state.apiKeySet = true;
       render();
     } catch (e) {
@@ -448,7 +448,7 @@ function init() {
 
     // Initial setup
     loadHistory();
-    const storedKey = sessionStorage.getItem('geminiApiKey');
+    const storedKey = localStorage.getItem('geminiApiKey');
     if (storedKey && state.geminiService.initialize(storedKey)) {
         state.apiKeySet = true;
     }
