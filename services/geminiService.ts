@@ -1,66 +1,85 @@
+
+import { GoogleGenAI } from "@google/genai";
+
+// Initialize the Google AI client once and reuse it.
+// The API key is sourced from environment variables for security.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
 /**
- * Generates a logo image by calling our Netlify serverless function.
+ * Generates a logo image using the Gemini API.
  * @param prompt The text prompt describing the desired logo.
  * @returns A promise that resolves to the base64 encoded image string.
  */
 export const generateLogoImage = async (prompt: string): Promise<string> => {
+  if (!process.env.API_KEY) {
+    throw new Error('API Key is missing. Please ensure it is configured in the environment variables.');
+  }
+
   try {
-    const response = await fetch('/api/generateLogo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt }),
+    const response = await ai.models.generateImages({
+      model: 'imagen-4.0-generate-001',
+      prompt: prompt,
+      config: {
+        numberOfImages: 1,
+        outputMimeType: 'image/png', // Use PNG for better quality and potential transparency
+        aspectRatio: '1:1',
+      },
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      // Use the error message from the serverless function's response
-      throw new Error(data.error || 'An unknown error occurred while generating the logo.');
+    if (response.generatedImages && response.generatedImages.length > 0) {
+      const image = response.generatedImages[0];
+      if (image.image?.imageBytes) {
+        return image.image.imageBytes;
+      }
     }
     
-    if (!data.imageB64) {
-      throw new Error('The server did not return an image.');
-    }
-
-    return data.imageB64;
+    throw new Error('No image was generated. The response might have been blocked due to safety policies.');
 
   } catch (error) {
-    console.error('Error calling generateLogo function:', error);
-    // Re-throw the error to be caught by the UI component
-    throw error;
+    console.error('Detailed error from Gemini API:', error);
+    
+    if (error instanceof Error) {
+        // More generic error messages since the key source is now hidden from the user.
+        if (error.message.toLowerCase().includes('billing')) {
+            throw new Error('Project billing issue. Please check the associated Google Cloud account.');
+        }
+        if (error.message.toLowerCase().includes('permission denied') || error.message.includes('api key not valid')) {
+            throw new Error('API permission denied. The configured API key may be invalid or lack necessary permissions.');
+        }
+         if (error.message.toLowerCase().includes('quota')) {
+            throw new Error('You have exceeded your API quota. Please check your usage limits.');
+        }
+    }
+    
+    // For any other error, provide a generic message.
+    throw new Error('Failed to generate logo. Check the developer console (F12) for more details.');
   }
 };
 
+
 /**
- * Translates text by calling our Netlify serverless function.
+ * Translates a given text to a target language using the Gemini API.
  * @param text The text to translate.
- * @param targetLanguage The target language or dialect.
+ * @param targetLanguage The language to translate the text into.
  * @returns A promise that resolves to the translated text string.
  */
 export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
-   try {
-    const response = await fetch('/api/translate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, targetLanguage }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      // Use the error message from the serverless function's response
-      throw new Error(data.error || 'An unknown error occurred during translation.');
-    }
+   if (!process.env.API_KEY) {
+    throw new Error('API Key is missing. Please ensure it is configured in the environment variables.');
+  }
+  
+  try {
+    const prompt = `Translate the following text to ${targetLanguage}. Return ONLY the translated text, without any introductory phrases, explanations, or quotation marks around the result: "${text}"`;
     
-    if (typeof data.translation !== 'string') {
-        throw new Error('The server did not return a valid translation.');
-    }
-
-    return data.translation;
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+    
+    return response.text.trim();
 
   } catch (error) {
-    console.error('Error calling translate function:', error);
-    // Re-throw the error to be caught by the UI component
-    throw error;
+    console.error('Detailed error from Gemini API during translation:', error);
+    throw new Error('Failed to translate text. Please try again or check the console for details.');
   }
 };

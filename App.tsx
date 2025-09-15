@@ -3,18 +3,14 @@ import React, { useState, useCallback } from 'react';
 import Header from './components/Header.tsx';
 import StyleButton from './components/StyleButton.tsx';
 import Spinner from './components/Spinner.tsx';
-import { generateLogoImage } from './services/geminiService.ts';
-import Translator from './components/Translator.tsx';
+import { generateLogoImage, translateText } from './services/geminiService.ts';
 
 const LOGO_STYLES = [
-  "Minimalist",
-  "Neon",
-  "Vintage",
-  "Futuristic",
-  "3D",
-  "Abstract",
-  "Vector",
-  "Graffiti"
+  "Minimalist", "Neon", "Vintage", "Futuristic", "3D", "Abstract", "Vector", "Graffiti"
+];
+
+const LANGUAGES = [
+  'Arabic (Iraqi dialect)', 'Kurdish (Kurmanji)', 'Kurdish (Sorani)', 'English', 'Spanish', 'French', 'German', 'Chinese (Simplified)', 'Japanese', 'Russian', 'Portuguese', 'Hindi'
 ];
 
 const App: React.FC = () => {
@@ -22,6 +18,10 @@ const App: React.FC = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [targetLanguage, setTargetLanguage] = useState<string>(LANGUAGES[0]);
+  const [isTranslating, setIsTranslating] = useState<boolean>(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
 
   const handleGenerateLogo = useCallback(async () => {
     setIsLoading(true);
@@ -39,8 +39,26 @@ const App: React.FC = () => {
     }
   }, [prompt]);
 
+  const handleTranslate = async () => {
+    if (!prompt) return;
+    setIsTranslating(true);
+    setTranslationError(null);
+    try {
+      const translatedText = await translateText(prompt, targetLanguage);
+      setPrompt(translatedText);
+    } catch (err) {
+      setTranslationError(err instanceof Error ? err.message : 'An unknown error occurred during translation.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   const addStyleToPrompt = (style: string) => {
-    setPrompt(prev => `${prev.replace(/, [A-Za-z]+ style\.$/, '')}, ${style.toLowerCase()} style.`);
+    setPrompt(prev => {
+      // A more robust way to add styles without duplicating
+      const cleanedPrompt = prev.replace(/, [A-Za-z]+ style\.$/, '').replace(/\.$/, '');
+      return `${cleanedPrompt}, ${style.toLowerCase()} style.`;
+    });
   };
 
   const downloadImage = () => {
@@ -58,7 +76,7 @@ const App: React.FC = () => {
       <div className="w-full max-w-4xl mx-auto">
         <Header />
 
-        <main className="mt-6 bg-gray-800/50 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-700">
+        <main className="mt-8 bg-gray-800/50 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-700">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Left Side: Controls */}
             <div className="lg:w-1/2 flex flex-col space-y-6">
@@ -73,7 +91,33 @@ const App: React.FC = () => {
                   placeholder="e.g., A minimalist logo for 'kaar'..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
+                  aria-label="Logo Description"
                 />
+              </div>
+
+              <div>
+                <label htmlFor="language-select" className="block text-sm font-medium text-indigo-300 mb-2">
+                  1.5 Translate Your Description (Optional)
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                   <select
+                    id="language-select"
+                    value={targetLanguage}
+                    onChange={(e) => setTargetLanguage(e.target.value)}
+                    className="flex-grow bg-gray-900 border border-gray-600 rounded-lg p-3 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                    aria-label="Select language for translation"
+                  >
+                    {LANGUAGES.map(lang => <option key={lang} value={lang}>{lang}</option>)}
+                  </select>
+                  <button
+                    onClick={handleTranslate}
+                    disabled={isTranslating}
+                    className="bg-teal-600 hover:bg-teal-700 disabled:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300"
+                  >
+                    {isTranslating ? <><Spinner />Translating...</> : 'Translate'}
+                  </button>
+                </div>
+                {translationError && <p className="text-xs text-red-400 mt-2">{translationError}</p>}
               </div>
 
               <div>
@@ -112,7 +156,7 @@ const App: React.FC = () => {
                  </div>
               )}
               {error && (
-                <div className="text-center text-red-400">
+                <div className="text-center text-red-400" role="alert">
                   <p><strong>Oops! Something went wrong.</strong></p>
                   <p className="text-sm">{error}</p>
                 </div>
@@ -125,7 +169,7 @@ const App: React.FC = () => {
                     onClick={downloadImage}
                     className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
                     Download
@@ -140,9 +184,6 @@ const App: React.FC = () => {
             </div>
           </div>
         </main>
-        
-        <Translator />
-
       </div>
     </div>
   );
