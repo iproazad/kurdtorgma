@@ -6,16 +6,23 @@ import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 })
 export class TranslationService {
   private ai: GoogleGenAI | null = null;
-  private readonly apiKeyError = 'A valid Gemini API key is not configured. Please set the API_KEY to use this feature.';
+  private readonly notInitializedError = 'API Key is not set. Please configure your key in the settings.';
 
   constructor() {
-    const apiKey = process.env.API_KEY;
-    if (apiKey && apiKey !== 'DEFAULT_API_KEY') {
-      this.ai = new GoogleGenAI({ apiKey });
-    } else {
-      // The app will load, but translation calls will fail with the error below.
-      console.warn(this.apiKeyError);
+    // Initialization is now handled dynamically via the initialize method.
+  }
+
+  /**
+   * Initializes the GoogleGenAI instance with the provided API key.
+   * @param apiKey The Gemini API key.
+   */
+  initialize(apiKey: string): void {
+    if (!apiKey) {
+      this.ai = null;
+      console.error("Attempted to initialize TranslationService with an empty API key.");
+      return;
     }
+    this.ai = new GoogleGenAI({ apiKey });
   }
 
   async translateText(
@@ -24,7 +31,7 @@ export class TranslationService {
     targetLang: string
   ): Promise<string> {
     if (!this.ai) {
-      throw new Error(this.apiKeyError);
+      throw new Error(this.notInitializedError);
     }
 
     if (!text.trim()) {

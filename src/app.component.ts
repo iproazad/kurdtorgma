@@ -20,6 +20,11 @@ interface Language {
 export class AppComponent {
   private translationService = inject(TranslationService);
 
+  // --- API Key Management Signals ---
+  isKeyConfigured = signal(false);
+  apiKeyError = signal<string | null>(null);
+  apiKeyInputValue = signal('');
+
   // State Signals
   sourceText = signal('');
   translatedText = signal('');
@@ -67,11 +72,56 @@ export class AppComponent {
     window.addEventListener('online', () => this.isOnline.set(true));
     window.addEventListener('offline', () => this.isOnline.set(false));
     this.registerServiceWorker();
+
+    // Check for a saved API key on startup
+    const savedKey = this.getApiKeyFromStorage();
+    if (savedKey) {
+      this.apiKeyInputValue.set(savedKey);
+      this.initializeWithKey(savedKey);
+    }
   }
 
   // Computed signal for character count
   charCount = computed(() => this.sourceText().length);
   readonly maxChars = 5000;
+
+  // --- API Key Methods ---
+  private getApiKeyFromStorage(): string | null {
+    try {
+      return localStorage.getItem('gemini_api_key');
+    } catch (e) {
+      console.error('Failed to read API key from localStorage:', e);
+      return null;
+    }
+  }
+
+  private saveApiKeyToStorage(key: string): void {
+    try {
+      localStorage.setItem('gemini_api_key', key);
+    } catch (e) {
+      console.error('Failed to save API key to localStorage:', e);
+    }
+  }
+  
+  private initializeWithKey(key: string): void {
+    this.translationService.initialize(key);
+    this.isKeyConfigured.set(true);
+    this.apiKeyError.set(null);
+  }
+
+  onSaveApiKey(): void {
+    const trimmedKey = this.apiKeyInputValue().trim();
+    if (!trimmedKey) {
+      this.apiKeyError.set('Please enter a valid API key.');
+      return;
+    }
+    this.saveApiKeyToStorage(trimmedKey);
+    this.initializeWithKey(trimmedKey);
+  }
+
+  onApiKeyInputChange(event: Event): void {
+    this.apiKeyInputValue.set((event.target as HTMLInputElement).value);
+  }
 
   // --- Caching Logic ---
   private getCacheKey(text: string, source: string, target: string): string {
@@ -177,7 +227,14 @@ export class AppComponent {
           this.saveToCache(cacheKey, result);
         }
       } catch (e) {
-        this.error.set(e instanceof Error ? e.message : 'An unexpected error occurred. Please try again.');
+        const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred. Please try again.';
+        // Specific check for API key errors to revert to the config screen
+        if (errorMessage.toLowerCase().includes('api key') || errorMessage.includes('not set')) {
+          this.isKeyConfigured.set(false);
+          this.apiKeyError.set('Your API key appears to be invalid or is missing. Please check it and try again.');
+        } else {
+          this.error.set(errorMessage);
+        }
         console.error(e);
       } finally {
         this.isLoading.set(false);

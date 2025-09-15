@@ -1,165 +1,209 @@
 <!-- Main container with vertical padding -->
 <main class="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-slate-900">
 
-  @if (!isOnline()) {
-    <div class="fixed top-4 right-4 z-50 flex items-center space-x-2 bg-amber-500 text-black text-sm font-bold px-4 py-2 rounded-full shadow-lg animate-pulse">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
-        <span>Offline</span>
-    </div>
-  }
+  @if (isKeyConfigured()) {
+    @if (!isOnline()) {
+      <div class="fixed top-4 right-4 z-50 flex items-center space-x-2 bg-amber-500 text-black text-sm font-bold px-4 py-2 rounded-full shadow-lg animate-pulse">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+          <span>Offline</span>
+      </div>
+    }
 
-  <!-- App Header -->
-  <header class="text-center mb-8">
-    <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
-      Universal Translator
-    </h1>
-    <p class="text-slate-400 mt-2">Powered by Google Gemini</p>
-  </header>
+    <!-- App Header -->
+    <header class="text-center mb-8">
+      <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
+        Universal Translator
+      </h1>
+      <p class="text-slate-400 mt-2">Powered by Google Gemini</p>
+    </header>
 
-  <!-- Main translator card -->
-  <div class="w-full max-w-5xl bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-950/50 p-4 sm:p-6 ring-1 ring-slate-700">
-    
-    <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-start">
+    <!-- Main translator card -->
+    <div class="w-full max-w-5xl bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-950/50 p-4 sm:p-6 ring-1 ring-slate-700">
       
-      <!-- ===== SOURCE LANGUAGE PANEL ===== -->
-      <div class="flex flex-col h-full space-y-2">
-        <app-language-selector
-          [languages]="languages"
-          [selectedLanguageName]="sourceLang()"
-          (languageChange)="onSourceLangChange($event)"
-          placeholder="Source Language"
-          listId="source-languages-list"
-          focusRingColor="focus:ring-sky-500"
-          ariaLabel="Select source language">
-        </app-language-selector>
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-start">
+        
+        <!-- ===== SOURCE LANGUAGE PANEL ===== -->
+        <div class="flex flex-col h-full space-y-2">
+          <app-language-selector
+            [languages]="languages"
+            [selectedLanguageName]="sourceLang()"
+            (languageChange)="onSourceLangChange($event)"
+            placeholder="Source Language"
+            listId="source-languages-list"
+            focusRingColor="focus:ring-sky-500"
+            ariaLabel="Select source language">
+          </app-language-selector>
 
-        <!-- Language Detection Feedback -->
-        <div class="h-5 text-xs text-slate-400 pl-1">
-            @if (isDetectingLang()) {
-                <div class="flex items-center space-x-1.5 animate-pulse">
-                    <svg class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Detecting language...</span>
-                </div>
-            } @else if (detectedLang()) {
-                <div class="flex items-center space-x-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                    <span>Detected: <strong class="font-semibold text-sky-400">{{ detectedLang() }}</strong></span>
-                </div>
+          <!-- Language Detection Feedback -->
+          <div class="h-5 text-xs text-slate-400 pl-1">
+              @if (isDetectingLang()) {
+                  <div class="flex items-center space-x-1.5 animate-pulse">
+                      <svg class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Detecting language...</span>
+                  </div>
+              } @else if (detectedLang()) {
+                  <div class="flex items-center space-x-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                      </svg>
+                      <span>Detected: <strong class="font-semibold text-sky-400">{{ detectedLang() }}</strong></span>
+                  </div>
+              }
+          </div>
+
+          <div class="relative flex-grow">
+            <textarea 
+              [value]="sourceText()" 
+              (input)="onSourceTextChange($event)"
+              [maxLength]="maxChars"
+              placeholder="Enter text to translate..."
+              class="w-full h-48 sm:h-64 resize-none bg-slate-900/80 rounded-md p-4 text-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:outline-none transition">
+            </textarea>
+            <div class="absolute bottom-2 right-3 text-xs text-slate-500">
+              {{ charCount() }} / {{ maxChars }}
+            </div>
+            @if (sourceText()) {
+              <button (click)="clearInput()" class="absolute top-2 right-2 p-1.5 text-slate-500 hover:text-white hover:bg-slate-700 rounded-full transition-colors duration-200" aria-label="Clear input">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
             }
+          </div>
         </div>
 
-        <div class="relative flex-grow">
-          <textarea 
-            [value]="sourceText()" 
-            (input)="onSourceTextChange($event)"
-            [maxLength]="maxChars"
-            placeholder="Enter text to translate..."
-            class="w-full h-48 sm:h-64 resize-none bg-slate-900/80 rounded-md p-4 text-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:outline-none transition">
-          </textarea>
-          <div class="absolute bottom-2 right-3 text-xs text-slate-500">
-            {{ charCount() }} / {{ maxChars }}
+        <!-- ===== SWAP BUTTON ===== -->
+        <div class="flex items-center justify-center h-full pt-10">
+          <button (click)="swapLanguages()" class="p-2 rounded-full text-slate-400 bg-slate-700/50 hover:bg-sky-500 hover:text-white transition-all duration-200 transform hover:rotate-180 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-sky-500" aria-label="Swap languages">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- ===== TARGET LANGUAGE PANEL ===== -->
+        <div class="flex flex-col h-full space-y-4">
+          <app-language-selector
+              [languages]="languages"
+              [selectedLanguageName]="targetLang()"
+              (languageChange)="onTargetLangChange($event)"
+              placeholder="Target Language"
+              listId="target-languages-list"
+              focusRingColor="focus:ring-emerald-500"
+              ariaLabel="Select target language">
+          </app-language-selector>
+
+          <div class="relative flex-grow bg-slate-900/80 rounded-md w-full h-48 sm:h-64 overflow-y-auto p-4">
+            @if (isLoading()) {
+              <div class="flex items-center justify-center h-full">
+                <div class="flex items-center space-x-2 text-slate-400">
+                  <svg class="animate-spin h-5 w-5 text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Translating...</span>
+                </div>
+              </div>
+            } @else if (error()) {
+              <div class="flex items-center justify-center h-full text-red-400 text-center">
+                <p>{{ error() }}</p>
+              </div>
+            } @else if (translatedText()) {
+              <p class="text-lg text-slate-100 whitespace-pre-wrap">{{ translatedText() }}</p>
+              @if (isFromCache()) {
+                  <div class="absolute top-2 left-3 flex items-center space-x-1.5 text-slate-400 text-xs font-medium px-2 py-0.5 rounded-full bg-slate-800 ring-1 ring-slate-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.414L11 10.586V6z" clip-rule="evenodd" />
+                      </svg>
+                      <span>From Cache</span>
+                  </div>
+              }
+              <div class="absolute top-2 right-2 flex items-center space-x-2">
+                  @if (isCopied()) {
+                      <div class="text-sm font-medium text-emerald-400 bg-slate-700/50 px-3 py-1 rounded-full pointer-events-none">
+                          Copied!
+                      </div>
+                  }
+                  <button (click)="copyToClipboard()" class="p-1.5 text-slate-500 hover:text-white hover:bg-slate-700 rounded-full transition-colors duration-200" aria-label="Copy translated text">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
+                          <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h6a2 2 0 00-2-2H5z" />
+                      </svg>
+                  </button>
+              </div>
+            } @else {
+              <div class="flex items-center justify-center h-full">
+                <p class="text-slate-500">Translation will appear here</p>
+              </div>
+            }
           </div>
-          @if (sourceText()) {
-            <button (click)="clearInput()" class="absolute top-2 right-2 p-1.5 text-slate-500 hover:text-white hover:bg-slate-700 rounded-full transition-colors duration-200" aria-label="Clear input">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
-            </button>
-          }
         </div>
       </div>
 
-      <!-- ===== SWAP BUTTON ===== -->
-      <div class="flex items-center justify-center h-full pt-10">
-        <button (click)="swapLanguages()" class="p-2 rounded-full text-slate-400 bg-slate-700/50 hover:bg-sky-500 hover:text-white transition-all duration-200 transform hover:rotate-180 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-sky-500" aria-label="Swap languages">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-          </svg>
+      <!-- Translate Button -->
+      <div class="mt-6 flex justify-center">
+        <button 
+          (click)="handleTranslation()" 
+          [disabled]="isLoading() || !sourceText().trim()"
+          class="w-full md:w-auto flex items-center justify-center px-8 py-3 bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-bold rounded-lg shadow-lg hover:shadow-xl hover:from-sky-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-sky-500 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-lg">
+            @if (isLoading()) {
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Translating...</span>
+            } @else {
+              <span>Translate</span>
+            }
         </button>
       </div>
+    </div>
+  } @else {
+    <!-- API Key Configuration UI -->
+    <div class="w-full max-w-lg text-center">
+      <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
+        Universal Translator
+      </h1>
+      <p class="text-slate-400 mt-2 mb-8">Powered by Google Gemini</p>
 
-      <!-- ===== TARGET LANGUAGE PANEL ===== -->
-      <div class="flex flex-col h-full space-y-4">
-        <app-language-selector
-            [languages]="languages"
-            [selectedLanguageName]="targetLang()"
-            (languageChange)="onTargetLangChange($event)"
-            placeholder="Target Language"
-            listId="target-languages-list"
-            focusRingColor="focus:ring-emerald-500"
-            ariaLabel="Select target language">
-        </app-language-selector>
+      <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-950/50 p-6 sm:p-8 ring-1 ring-slate-700">
+        <h2 class="text-2xl font-bold text-slate-100 mb-2">Setup Required</h2>
+        <p class="text-slate-400 mb-6">Please enter your Google Gemini API key to begin translating.</p>
+        
+        <div class="flex flex-col space-y-4">
+          <input 
+            type="password"
+            [value]="apiKeyInputValue()"
+            (input)="onApiKeyInputChange($event)"
+            placeholder="Enter your Gemini API key"
+            class="w-full bg-slate-900 rounded-md p-3 text-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:outline-none transition"
+            aria-label="Gemini API Key">
+          
+          <button
+            (click)="onSaveApiKey()"
+            class="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-bold rounded-lg shadow-lg hover:shadow-xl hover:from-sky-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-sky-500 transition-all duration-300 transform hover:scale-105">
+            Save and Continue
+          </button>
+        </div>
 
-        <div class="relative flex-grow bg-slate-900/80 rounded-md w-full h-48 sm:h-64 overflow-y-auto p-4">
-          @if (isLoading()) {
-            <div class="flex items-center justify-center h-full">
-              <div class="flex items-center space-x-2 text-slate-400">
-                <svg class="animate-spin h-5 w-5 text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Translating...</span>
-              </div>
-            </div>
-          } @else if (error()) {
-            <div class="flex items-center justify-center h-full text-red-400 text-center">
-              <p>{{ error() }}</p>
-            </div>
-          } @else if (translatedText()) {
-            <p class="text-lg text-slate-100 whitespace-pre-wrap">{{ translatedText() }}</p>
-            @if (isFromCache()) {
-                <div class="absolute top-2 left-3 flex items-center space-x-1.5 text-slate-400 text-xs font-medium px-2 py-0.5 rounded-full bg-slate-800 ring-1 ring-slate-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.414L11 10.586V6z" clip-rule="evenodd" />
-                    </svg>
-                    <span>From Cache</span>
-                </div>
-            }
-            <div class="absolute top-2 right-2 flex items-center space-x-2">
-                @if (isCopied()) {
-                    <div class="text-sm font-medium text-emerald-400 bg-slate-700/50 px-3 py-1 rounded-full pointer-events-none">
-                        Copied!
-                    </div>
-                }
-                <button (click)="copyToClipboard()" class="p-1.5 text-slate-500 hover:text-white hover:bg-slate-700 rounded-full transition-colors duration-200" aria-label="Copy translated text">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
-                        <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h6a2 2 0 00-2-2H5z" />
-                    </svg>
-                </button>
-            </div>
-          } @else {
-            <div class="flex items-center justify-center h-full">
-              <p class="text-slate-500">Translation will appear here</p>
-            </div>
-          }
+        @if (apiKeyError()) {
+          <p class="mt-4 text-red-400 text-sm">{{ apiKeyError() }}</p>
+        }
+
+        <div class="mt-8 text-left text-sm text-slate-400 border-t border-slate-700 pt-6">
+          <h3 class="font-semibold text-slate-200 mb-2">How to get an API key:</h3>
+          <ol class="list-decimal list-inside space-y-2">
+            <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-sky-400 hover:underline">Google AI Studio</a>.</li>
+            <li>Click on "Create API key" to get your key.</li>
+            <li>Copy the key and paste it into the field above.</li>
+          </ol>
+          <p class="mt-4 text-xs text-slate-500">Your API key is stored securely in your browser's local storage and is never sent to any other server.</p>
         </div>
       </div>
     </div>
-
-    <!-- Translate Button -->
-    <div class="mt-6 flex justify-center">
-      <button 
-        (click)="handleTranslation()" 
-        [disabled]="isLoading() || !sourceText().trim()"
-        class="w-full md:w-auto flex items-center justify-center px-8 py-3 bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-bold rounded-lg shadow-lg hover:shadow-xl hover:from-sky-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-sky-500 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-lg">
-          @if (isLoading()) {
-            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span>Translating...</span>
-          } @else {
-            <span>Translate</span>
-          }
-      </button>
-    </div>
-
-  </div>
+  }
 
 </main>
