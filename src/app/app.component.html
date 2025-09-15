@@ -48,7 +48,7 @@
     <!-- Text Areas -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="relative">
-        <textarea [ngModel]="sourceText()" (ngModelChange)="sourceText.set($event)"
+        <textarea [(ngModel)]="sourceText" (ngModelChange)="sourceText.set($event)"
                   placeholder="اكتب النص هنا..."
                   class="w-full h-48 md:h-64 p-4 bg-slate-800/60 border border-slate-700 rounded-lg resize-none text-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"></textarea>
          <span class="absolute bottom-3 left-3 text-xs text-slate-500">{{ sourceText().length }} / 5000</span>
