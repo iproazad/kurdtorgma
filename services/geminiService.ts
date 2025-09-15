@@ -1,19 +1,17 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-// Initialize the Google AI client once and reuse it.
-// The API key is sourced from environment variables for security.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 /**
  * Generates a logo image using the Gemini API.
  * @param prompt The text prompt describing the desired logo.
+ * @param apiKey The user's Gemini API key.
  * @returns A promise that resolves to the base64 encoded image string.
  */
-export const generateLogoImage = async (prompt: string): Promise<string> => {
-  if (!process.env.API_KEY) {
-    throw new Error('API Key is missing. Please ensure it is configured in the environment variables.');
+export const generateLogoImage = async (prompt: string, apiKey: string): Promise<string> => {
+  if (!apiKey) {
+    throw new Error('API Key is missing. Please provide a valid Gemini API Key.');
   }
+  const ai = new GoogleGenAI({ apiKey });
 
   try {
     const response = await ai.models.generateImages({
@@ -39,47 +37,21 @@ export const generateLogoImage = async (prompt: string): Promise<string> => {
     console.error('Detailed error from Gemini API:', error);
     
     if (error instanceof Error) {
-        // More generic error messages since the key source is now hidden from the user.
-        if (error.message.toLowerCase().includes('billing')) {
-            throw new Error('Project billing issue. Please check the associated Google Cloud account.');
+        if (error.message.includes('API key not valid')) {
+            throw new Error('The API key is not valid according to Google. Please generate a new key in your Google Cloud project.');
         }
-        if (error.message.toLowerCase().includes('permission denied') || error.message.includes('api key not valid')) {
-            throw new Error('API permission denied. The configured API key may be invalid or lack necessary permissions.');
+        if (error.message.toLowerCase().includes('billing')) {
+            throw new Error('Billing is not enabled for the project. Please check your Google Cloud account and enable billing.');
+        }
+        if (error.message.toLowerCase().includes('permission denied')) {
+            throw new Error('API permission denied. Ensure the "Generative Language API" is enabled in your Google Cloud project.');
         }
          if (error.message.toLowerCase().includes('quota')) {
-            throw new Error('You have exceeded your API quota. Please check your usage limits.');
+            throw new Error('You have exceeded your API quota. Please check your usage limits in Google Cloud.');
         }
     }
     
-    // For any other error, provide a generic message.
+    // For any other error, provide a generic message but log the specific error for debugging.
     throw new Error('Failed to generate logo. Check the developer console (F12) for more details.');
-  }
-};
-
-
-/**
- * Translates a given text to a target language using the Gemini API.
- * @param text The text to translate.
- * @param targetLanguage The language to translate the text into.
- * @returns A promise that resolves to the translated text string.
- */
-export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
-   if (!process.env.API_KEY) {
-    throw new Error('API Key is missing. Please ensure it is configured in the environment variables.');
-  }
-  
-  try {
-    const prompt = `Translate the following text to ${targetLanguage}. Return ONLY the translated text, without any introductory phrases, explanations, or quotation marks around the result: "${text}"`;
-    
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
-    
-    return response.text.trim();
-
-  } catch (error) {
-    console.error('Detailed error from Gemini API during translation:', error);
-    throw new Error('Failed to translate text. Please try again or check the console for details.');
   }
 };
