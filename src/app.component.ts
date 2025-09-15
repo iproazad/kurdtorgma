@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslationService } from './services/translation.service';
-import { LanguageSelectorComponent } from './language-selector/language-selector.component';
+import { TranslationService } from './services/translation.service.ts';
+import { LanguageSelectorComponent } from './language-selector/language-selector.component.ts';
 
 interface Language {
   name: string;
