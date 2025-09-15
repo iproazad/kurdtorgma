@@ -1,14 +1,14 @@
 const CACHE_NAME = 'gemini-translator-v1';
 const URLS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/assets/icon.svg',
-  '/index.tsx',
-  '/src/app.component.ts',
-  '/src/app.component.html',
-  '/src/services/translation.service.ts',
-  '/src/language-selector/language-selector.component.ts',
-  '/src/language-selector/language-selector.component.html',
+  './',
+  './index.html',
+  './assets/icon.svg',
+  './index.tsx',
+  './src/app.component.ts',
+  './src/app.component.html',
+  './src/services/translation.service.ts',
+  './src/language-selector/language-selector.component.ts',
+  './src/language-selector/language-selector.component.html',
   // Dependencies from importmap
   "https://cdn.tailwindcss.com",
   "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
