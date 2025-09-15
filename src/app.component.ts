@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, signal, afterNextRender } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, afterNextRender } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { GeminiService } from './gemini.service';
+// Fix: Import all exported functions from gemini.service.ts as a module
+import * as geminiService from './gemini.service';
 
 interface Language {
   code: string;
@@ -26,7 +27,7 @@ interface HistoryItem {
   imports: [FormsModule, CommonModule],
 })
 export class AppComponent {
-  private readonly geminiService = inject(GeminiService);
+  // Fix: Removed injection of GeminiService since it's not an injectable class.
 
   // --- State for API Key ---
   apiKey = signal<string>('');
@@ -65,7 +66,8 @@ export class AppComponent {
       // Check for API key in session storage on startup
       const storedKey = sessionStorage.getItem('geminiApiKey');
       if (storedKey) {
-        if (this.geminiService.initialize(storedKey)) {
+        // Fix: Call the imported function directly
+        if (geminiService.initialize(storedKey)) {
           this.apiKeySet.set(true);
         } else {
           // Remove invalid key
@@ -85,10 +87,12 @@ export class AppComponent {
     }
     
     // Initialize the service and then perform a quick test call
-    if (this.geminiService.initialize(key)) {
+    // Fix: Call the imported function directly
+    if (geminiService.initialize(key)) {
       try {
         // Test call to verify the key is valid
-        await this.geminiService.verifyApiKey();
+        // Fix: Call the imported function directly
+        await geminiService.verifyApiKey();
         sessionStorage.setItem('geminiApiKey', key);
         this.apiKeySet.set(true);
       } catch (e) {
@@ -116,7 +120,8 @@ export class AppComponent {
       const sourceLangName = this.languages.find(l => l.code === this.sourceLang())?.name || 'English';
       const targetLangName = this.languages.find(l => l.code === this.targetLang())?.name || 'Arabic (Iraqi dialect)';
       
-      const result = await this.geminiService.translateText(text, sourceLangName, targetLangName);
+      // Fix: Call the imported function directly
+      const result = await geminiService.translateText(text, sourceLangName, targetLangName);
       this.translatedText.set(result);
 
       const newHistoryItem: HistoryItem = {
@@ -150,7 +155,8 @@ export class AppComponent {
 
     try {
       const sourceLangName = this.languages.find(l => l.code === this.sourceLang())?.name || 'English';
-      const correctedText = await this.geminiService.spellCheckText(text, sourceLangName);
+      // Fix: Call the imported function directly
+      const correctedText = await geminiService.spellCheckText(text, sourceLangName);
       this.sourceText.set(correctedText);
       if (text !== correctedText) {
         this.spellCheckSuccess.set('تم تصحيح النص بنجاح!');
