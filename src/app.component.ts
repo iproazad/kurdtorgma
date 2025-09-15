@@ -15,6 +15,7 @@ interface Language {
   imports: [CommonModule, LanguageSelectorComponent],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [TranslationService],
 })
 export class AppComponent {
   private translationService = inject(TranslationService);
@@ -175,7 +176,7 @@ export class AppComponent {
           this.saveToCache(cacheKey, result);
         }
       } catch (e) {
-        this.error.set('An unexpected error occurred. Please try again.');
+        this.error.set(e instanceof Error ? e.message : 'An unexpected error occurred. Please try again.');
         console.error(e);
       } finally {
         this.isLoading.set(false);

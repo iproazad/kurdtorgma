@@ -5,12 +5,23 @@ import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
   providedIn: 'root',
 })
 export class TranslationService {
-  private ai: GoogleGenAI;
+  private ai: GoogleGenAI | null = null;
 
   constructor() {
-    // The API key is sourced from environment variables, which is handled
-    // by the Applet environment.
-    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // The API key is sourced from environment variables. This check makes
+    // the app robust if the key is not provided in other environments.
+    const apiKey = process.env.API_KEY;
+    if (apiKey) {
+      this.ai = new GoogleGenAI({ apiKey: apiKey });
+    } else {
+      console.error('Gemini API key not found. The translation service will be disabled.');
+    }
+  }
+
+  private ensureAiIsReady(): void {
+    if (!this.ai) {
+      throw new Error('Translation service is not available: API key is missing.');
+    }
   }
 
   async translateText(
@@ -18,6 +29,7 @@ export class TranslationService {
     sourceLang: string,
     targetLang: string
   ): Promise<string> {
+    this.ensureAiIsReady();
     if (!text.trim()) {
       return '';
     }
@@ -29,7 +41,7 @@ Text to translate:
 "${text}"`;
 
     try {
-      const response: GenerateContentResponse = await this.ai.models.generateContent({
+      const response: GenerateContentResponse = await this.ai!.models.generateContent({
         model: model,
         contents: prompt,
         config: {
@@ -41,14 +53,20 @@ Text to translate:
       return response.text.trim();
     } catch (error) {
       console.error('Error translating text:', error);
+      // Propagate the error so the component can handle it.
       if (error instanceof Error) {
-        return `Error: Could not translate. ${error.message}`;
+          throw new Error(`Translation failed: ${error.message}`);
       }
-      return 'An unknown error occurred during translation.';
+      throw new Error('An unknown error occurred during translation.');
     }
   }
 
   async detectLanguage(text: string): Promise<string> {
+    if (!this.ai) {
+      // Fail silently if service is not configured
+      return ''; 
+    }
+
     if (text.trim().length < 10) {
       return '';
     }

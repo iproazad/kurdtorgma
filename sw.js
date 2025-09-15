@@ -2,8 +2,7 @@ const CACHE_NAME = 'gemini-translator-v1';
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
-  'manifest.webmanifest',
-  'assets/icon.svg',
+  '/assets/icon.svg',
   '/index.tsx',
   '/src/app.component.ts',
   '/src/app.component.html',
@@ -12,18 +11,18 @@ const URLS_TO_CACHE = [
   '/src/language-selector/language-selector.component.html',
   // Dependencies from importmap
   "https://cdn.tailwindcss.com",
-  "https://esm.sh/rxjs@7.8.2",
-  "https://esm.sh/rxjs@7.8.2/operators",
-  "https://esm.sh/rxjs@7.8.2/ajax",
-  "https://esm.sh/rxjs@7.8.2/webSocket",
-  "https://esm.sh/rxjs@7.8.2/testing",
-  "https://esm.sh/rxjs@7.8.2/fetch",
-  "https://esm.sh/@google/genai@1.19.0",
-  "https://esm.sh/@angular/compiler@20.1.6-0",
-  "https://esm.sh/@angular/core@20.1.6-0",
-  "https://esm.sh/@angular/common@20.1.6-0",
-  "https://esm.sh/@angular/common@20.1.6-0/http",
-  "https://esm.sh/@angular/platform-browser@20.1.6-0"
+  "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
+  "https://aistudiocdn.com/rxjs@^7.8.2/operators?conditions=es2015",
+  "https://aistudiocdn.com/rxjs@^7.8.2/ajax?conditions=es2015",
+  "https://aistudiocdn.com/rxjs@^7.8.2/webSocket?conditions=es2015",
+  "https://aistudiocdn.com/rxjs@^7.8.2/testing?conditions=es2015",
+  "https://aistudiocdn.com/rxjs@^7.8.2/fetch?conditions=es2015",
+  "https://next.esm.sh/@google/genai@^1.19.0?external=rxjs",
+  "https://next.esm.sh/@angular/compiler@^20.1.6-0?external=rxjs",
+  "https://next.esm.sh/@angular/core@^20.1.6-0?external=rxjs",
+  "https://next.esm.sh/@angular/common@^20.1.6-0?external=rxjs",
+  "https://next.esm.sh/@angular/common@^20.1.6-0/http?external=rxjs",
+  "https://next.esm.sh/@angular/platform-browser@^20.1.6-0?external=rxjs"
 ];
 
 // Install service worker and cache all static assets
