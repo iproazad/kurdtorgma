@@ -3,7 +3,7 @@ const URLS_TO_CACHE = [
   '/',
   '/index.html',
   '/assets/icon.svg',
-  '/index.tsx',
+  '/index.js',
   '/src/app.component.ts',
   '/src/app.component.html',
   '/src/services/translation.service.ts',
