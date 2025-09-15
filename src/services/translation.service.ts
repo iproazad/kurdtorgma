@@ -99,4 +99,32 @@ Text:
       return '';
     }
   }
+
+  /**
+   * Verifies if the initialized API key is valid by making a lightweight request.
+   * @returns {Promise<boolean>} True if the key is valid, false otherwise.
+   */
+  async verifyApiKey(): Promise<boolean> {
+    if (!this.ai) {
+      // If service isn't initialized, key is effectively invalid for use.
+      return false;
+    }
+
+    try {
+      // Use a simple, non-streaming, low-token-consuming request to verify connectivity and authentication.
+      await this.ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: 'hi', // A simple prompt
+        config: {
+          maxOutputTokens: 1, // We don't care about the response, just that it succeeds.
+          thinkingConfig: { thinkingBudget: 0 } // No need for thinking
+        }
+      });
+      return true; // If the request does not throw, the key is valid.
+    } catch (error) {
+      console.error('API Key verification failed:', error);
+      // Any error during this check (auth, network, etc.) is treated as a verification failure.
+      return false;
+    }
+  }
 }

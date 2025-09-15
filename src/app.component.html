@@ -163,14 +163,24 @@
             type="password"
             [value]="apiKeyInputValue()"
             (input)="onApiKeyInputChange($event)"
+            [disabled]="isSavingApiKey()"
             placeholder="Enter your Gemini API key"
-            class="w-full bg-slate-900 rounded-md p-3 text-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:outline-none transition"
+            class="w-full bg-slate-900 rounded-md p-3 text-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Gemini API Key">
           
           <button
             (click)="onSaveApiKey()"
-            class="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-bold rounded-lg shadow-lg hover:shadow-xl hover:from-sky-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-sky-500 transition-all duration-300 transform hover:scale-105">
-            Save and Continue
+            [disabled]="isSavingApiKey()"
+            class="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-bold rounded-lg shadow-lg hover:shadow-xl hover:from-sky-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-sky-500 transition-all duration-300 transform hover:scale-105 disabled:opacity-75 disabled:cursor-wait disabled:scale-100">
+            @if (isSavingApiKey()) {
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Verifying Key...</span>
+            } @else {
+              <span>Save and Continue</span>
+            }
           </button>
         </div>
 

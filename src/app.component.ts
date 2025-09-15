@@ -24,6 +24,7 @@ export class AppComponent {
   isKeyConfigured = signal(false);
   apiKeyError = signal<string | null>(null);
   apiKeyInputValue = signal('');
+  isSavingApiKey = signal(false);
 
   // State Signals
   sourceText = signal('');
@@ -71,7 +72,9 @@ export class AppComponent {
     const savedKey = this.getApiKeyFromStorage();
     if (savedKey) {
       this.apiKeyInputValue.set(savedKey);
-      this.initializeWithKey(savedKey);
+      // Optimistically initialize on load without verification
+      this.translationService.initialize(savedKey);
+      this.isKeyConfigured.set(true);
     }
   }
 
@@ -96,21 +99,35 @@ export class AppComponent {
       console.error('Failed to save API key to localStorage:', e);
     }
   }
-  
-  private initializeWithKey(key: string): void {
-    this.translationService.initialize(key);
-    this.isKeyConfigured.set(true);
-    this.apiKeyError.set(null);
-  }
 
-  onSaveApiKey(): void {
+  async onSaveApiKey(): Promise<void> {
     const trimmedKey = this.apiKeyInputValue().trim();
     if (!trimmedKey) {
       this.apiKeyError.set('Please enter a valid API key.');
       return;
     }
-    this.saveApiKeyToStorage(trimmedKey);
-    this.initializeWithKey(trimmedKey);
+    if (this.isSavingApiKey()) return;
+
+    this.isSavingApiKey.set(true);
+    this.apiKeyError.set(null);
+
+    // Temporarily initialize the service to verify the key
+    this.translationService.initialize(trimmedKey);
+
+    try {
+      const isValid = await this.translationService.verifyApiKey();
+      if (isValid) {
+        this.saveApiKeyToStorage(trimmedKey);
+        this.isKeyConfigured.set(true);
+      } else {
+        this.apiKeyError.set('Your API key appears to be invalid. Please check it and try again.');
+      }
+    } catch (e) {
+      this.apiKeyError.set('An error occurred during verification. Please check your network connection.');
+      console.error('API key verification error', e);
+    } finally {
+      this.isSavingApiKey.set(false);
+    }
   }
 
   onApiKeyInputChange(event: Event): void {
