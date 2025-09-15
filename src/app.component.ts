@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal, afterNextRender } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { GeminiService } from './services/gemini.service';
+import { GeminiService } from './gemini.service';
 
 interface Language {
   code: string;
@@ -21,6 +21,7 @@ interface HistoryItem {
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
+  styleUrls: ['./styles.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, CommonModule],
 })
