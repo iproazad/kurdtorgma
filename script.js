@@ -138,6 +138,8 @@ const dom = {
   historyEmptyMsg: document.getElementById('history-empty-msg'),
   clearHistoryBtn: document.getElementById('clear-history-btn'),
   clearAllBtn: document.getElementById('clear-all-btn'),
+  clearSourceBtn: document.getElementById('clear-source-btn'),
+  clearTranslatedBtn: document.getElementById('clear-translated-btn'),
 };
 
 // --- Render Functions ---
@@ -162,6 +164,10 @@ function render() {
   dom.loadingSpinner.classList.toggle('hidden', !state.isLoading);
   dom.translationPlaceholder.classList.toggle('hidden', state.isLoading || !!state.translatedText);
   dom.copyContainer.classList.toggle('hidden', !state.translatedText);
+  
+  // Clear buttons visibility
+  dom.clearSourceBtn.classList.toggle('hidden', !state.sourceText.trim());
+  dom.clearTranslatedBtn.classList.toggle('hidden', !state.translatedText.trim());
 
   // Buttons state
   const isAutoDetect = state.sourceLang === 'auto';
@@ -176,7 +182,7 @@ function render() {
   dom.spellCheckBtnContent.classList.toggle('hidden', state.isCheckingSpelling);
   dom.spellCheckBtnLoading.classList.toggle('hidden', !state.isCheckingSpelling);
   
-  const nothingToClear = !state.sourceText.trim() && !state.translatedText.trim() && state.history.length === 0;
+  const nothingToClear = !state.sourceText.trim() && !state.translatedText.trim();
   dom.clearAllBtn.disabled = nothingToClear;
 
   // Copy button state
@@ -405,13 +411,22 @@ function copyToClipboard() {
 }
 
 function handleClearAll() {
-    if (confirm('هل أنت متأكد من أنك تريد مسح كل شيء؟ سيتم حذف النص الموجود في كلا الحقلين وسجل الترجمة بشكل دائم.')) {
+    if (confirm('هل أنت متأكد أنك تريد مسح النص المصدر والترجمة؟ لن يتأثر سجل الترجمة.')) {
         state.sourceText = '';
         state.translatedText = '';
-        state.history = [];
-        saveHistory();
         render();
     }
+}
+
+function handleClearSourceText() {
+    state.sourceText = '';
+    render();
+    dom.sourceTextarea.focus();
+}
+
+function handleClearTranslatedText() {
+    state.translatedText = '';
+    render();
 }
 
 function handleHistoryClick(event) {
@@ -492,6 +507,8 @@ function init() {
     dom.translateBtn.addEventListener('click', handleTranslation);
     dom.spellCheckBtn.addEventListener('click', handleSpellCheck);
     dom.clearAllBtn.addEventListener('click', handleClearAll);
+    dom.clearSourceBtn.addEventListener('click', handleClearSourceText);
+    dom.clearTranslatedBtn.addEventListener('click', handleClearTranslatedText);
 
     dom.copyBtn.addEventListener('click', copyToClipboard);
 
