@@ -1,6 +1,46 @@
 import { GoogleGenAI } from '@google/genai';
 
-// --- I18n & Translations ---
+// --- Data ---
+const ALL_LANGUAGES = [
+    { code: 'af', name: 'Afrikaans' }, { code: 'sq', name: 'Albanian' }, { code: 'am', name: 'Amharic' },
+    { code: 'ar', name: 'Arabic (Standard)' }, { code: 'ar-IQ', name: 'Arabic (Iraqi dialect)' }, { code: 'hy', name: 'Armenian' },
+    { code: 'az', name: 'Azerbaijani' }, { code: 'eu', name: 'Basque' }, { code: 'be', name: 'Belarusian' },
+    { code: 'bn', name: 'Bengali' }, { code: 'bs', name: 'Bosnian' }, { code: 'bg', name: 'Bulgarian' },
+    { code: 'ca', name: 'Catalan' }, { code: 'ceb', name: 'Cebuano' }, { code: 'ny', name: 'Chichewa' },
+    { code: 'zh-CN', name: 'Chinese (Simplified)' }, { code: 'zh-TW', name: 'Chinese (Traditional)' }, { code: 'co', name: 'Corsican' },
+    { code: 'hr', name: 'Croatian' }, { code: 'cs', name: 'Czech' }, { code: 'da', name: 'Danish' },
+    { code: 'nl', name: 'Dutch' }, { code: 'en', name: 'English' }, { code: 'eo', name: 'Esperanto' },
+    { code: 'et', name: 'Estonian' }, { code: 'tl', name: 'Filipino' }, { code: 'fi', name: 'Finnish' },
+    { code: 'fr', name: 'French' }, { code: 'fy', name: 'Frisian' }, { code: 'gl', name: 'Galician' },
+    { code: 'ka', name: 'Georgian' }, { code: 'de', name: 'German' }, { code: 'el', name: 'Greek' },
+    { code: 'gu', name: 'Gujarati' }, { code: 'ht', name: 'Haitian Creole' }, { code: 'ha', name: 'Hausa' },
+    { code: 'haw', name: 'Hawaiian' }, { code: 'iw', name: 'Hebrew' }, { code: 'hi', name: 'Hindi' },
+    { code: 'hmn', name: 'Hmong' }, { code: 'hu', name: 'Hungarian' }, { code: 'is', name: 'Icelandic' },
+    { code: 'ig', name: 'Igbo' }, { code: 'id', name: 'Indonesian' }, { code: 'ga', name: 'Irish' },
+    { code: 'it', name: 'Italian' }, { code: 'ja', name: 'Japanese' }, { code: 'jw', name: 'Javanese' },
+    { code: 'kn', name: 'Kannada' }, { code: 'kk', name: 'Kazakh' }, { code: 'km', name: 'Khmer' },
+    { code: 'rw', name: 'Kinyarwanda' }, { code: 'ko', name: 'Korean' }, { code: 'ku-badini', name: 'Kurdish (Badini)' },
+    { code: 'ku-kurmanji', name: 'Kurdish (Kurmanji)' }, { code: 'ku-sorani', name: 'Kurdish (Sorani)' }, { code: 'ky', name: 'Kyrgyz' },
+    { code: 'lo', name: 'Lao' }, { code: 'la', name: 'Latin' }, { code: 'lv', name: 'Latvian' },
+    { code: 'lt', name: 'Lithuanian' }, { code: 'lb', name: 'Luxembourgish' }, { code: 'mk', name: 'Macedonian' },
+    { code: 'mg', name: 'Malagasy' }, { code: 'ms', name: 'Malay' }, { code: 'ml', name: 'Malayalam' },
+    { code: 'mt', name: 'Maltese' }, { code: 'mi', name: 'Maori' }, { code: 'mr', name: 'Marathi' },
+    { code: 'mn', name: 'Mongolian' }, { code: 'my', name: 'Myanmar (Burmese)' }, { code: 'ne', name: 'Nepali' },
+    { code: 'no', name: 'Norwegian' }, { code: 'or', name: 'Odia (Oriya)' }, { code: 'ps', name: 'Pashto' },
+    { code: 'fa', name: 'Persian' }, { code: 'pl', name: 'Polish' }, { code: 'pt', name: 'Portuguese' },
+    { code: 'pa', name: 'Punjabi' }, { code: 'ro', name: 'Romanian' }, { code: 'ru', name: 'Russian' },
+    { code: 'sm', name: 'Samoan' }, { code: 'gd', name: 'Scots Gaelic' }, { code: 'sr', name: 'Serbian' },
+    { code: 'st', name: 'Sesotho' }, { code: 'sn', name: 'Shona' }, { code: 'sd', name: 'Sindhi' },
+    { code: 'si', name: 'Sinhala' }, { code: 'sk', name: 'Slovak' }, { code: 'sl', name: 'Slovenian' },
+    { code: 'so', name: 'Somali' }, { code: 'es', name: 'Spanish' }, { code: 'su', name: 'Sundanese' },
+    { code: 'sw', name: 'Swahili' }, { code: 'sv', name: 'Swedish' }, { code: 'tg', name: 'Tajik' },
+    { code: 'ta', name: 'Tamil' }, { code: 'tt', name: 'Tatar' }, { code: 'te', name: 'Telugu' },
+    { code: 'th', name: 'Thai' }, { code: 'tr', name: 'Turkish' }, { code: 'uk', name: 'Ukrainian' },
+    { code: 'ur', name: 'Urdu' }, { code: 'ug', name: 'Uyghur' }, { code: 'uz', name: 'Uzbek' },
+    { code: 'vi', name: 'Vietnamese' }, { code: 'cy', name: 'Welsh' }, { code: 'xh', name: 'Xhosa' },
+    { code: 'yi', name: 'Yiddish' }, { code: 'yo', name: 'Yoruba' }, { code: 'zu', name: 'Zulu' }
+].sort((a, b) => a.name.localeCompare(b.name));
+
 const uiLanguages = [
     { code: 'ku-badini', name: 'Kurdî (Badînî)' },
     { code: 'ku-sorani', name: 'کوردی (سۆرانی)' },
@@ -62,24 +102,48 @@ const translations = {
     apiKeyInputPlaceholder: { 'ku-badini': 'کلیلا API ل ڤێرە داخل بکە', 'ku-sorani': 'کلیلی API لێرە بنووسە', 'ku-kurmanji': 'Mifteya API li vir binivîse', 'ar': 'أدخل مفتاح API هنا', 'en': 'Enter API key here' },
     apiKeySaveButton: { 'ku-badini': 'پاشکەفتن و بەردەوامی', 'ku-sorani': 'پاشەکەوتکردن و بەردەوامبوون', 'ku-kurmanji': 'Tomar bike û bidomîne', 'ar': 'حفظ ومتابعة', 'en': 'Save and Continue' },
     apiKeyGetLink: { 'ku-badini': 'تو دشێی کلیلا API ژ Google AI Studio بدەست بینی.', 'ku-sorani': 'دەتوانیت کلیلی API لە Google AI Studio بەدەست بهێنیت.', 'ku-kurmanji': 'Tu dikarî mifteya API ji Google AI Studio bistînî.', 'ar': 'يمكنك الحصول على مفتاح API من Google AI Studio.', 'en': 'You can get an API key from Google AI Studio.' },
-    apiKeyErrorInvalid: { 'ku-badini': 'کلیلا داخلکری نە دروستە یان کێشەکا تۆڕێ هەیە. تکایە پشکنینێ بکە.', 'ku-sorani': 'کلیلی نووسراو نادروستە یان کێشەیەکی تۆڕ هەیە. تکایە پشکنینی بۆ بکە.', 'ku-kurmanji': 'Mifteya ku te nivîsî ne derbasdar e an pirsgirêkek torê heye. Ji kerema xwe kontrol bike.', 'ar': 'المفتاح الذي أدخلته غير صالح أو حدث خطأ في الشبكة. يرجى التحقق منه.', 'en': 'The key you entered is invalid or there was a network error. Please check it.' },
+    apiKeyErrorInvalid: { 'ku-badini': 'کلیلا داخلکری نە دروستە یان کێشەکا تۆڕێ هەیە. تکایە پشکنینێ بکە.', 'ku-sorani': 'کلیلی نووسراو نادروستە یان کێشەیەکی تۆڕ هەیە. تکایە پشکنینی بۆ بکە.', 'ku-kurmanji': 'Mifteya ku te nivîsî ne derbasdar e an pirsgirerek torê heye. Ji kerema xwe kontrol bike.', 'ar': 'المفتاح الذي أدخلته غير صالح أو حدث خطأ في الشبكة. يرجى التحقق منه.', 'en': 'The key you entered is invalid or there was a network error. Please check it.' },
     apiKeyErrorMissing: { 'ku-badini': 'تکایە کلیلا API یا دروست داخل بکە.', 'ku-sorani': 'تکایە کلیلی API دروست بنووسە.', 'ku-kurmanji': 'Ji kerema xwe mifteyek API ya derbasdar binivîse.', 'ar': 'يرجى إدخال مفتاح API صالح.', 'en': 'Please enter a valid API key.' },
     apiKeyErrorInit: { 'ku-badini': 'دەستپێکرنا خزمەتا Gemini سەرنەکەفت. تکایە کلیلی پشکنینە و دوبارە هەول بدە.', 'ku-sorani': 'دەستپێکردنی خزمەتگوزاری Gemini سەرکەوتوو نەبوو. تکایە کلیلیەکە بپشکنە و دووبارە هەوڵبدەرەوە.', 'ku-kurmanji': 'Destpêkirina servîsa Gemini bi ser neket. Ji kerema xwe mifteyê kontrol bike û dîsa biceribîne.', 'ar': 'فشل تهيئة خدمة Gemini. يرجى التحقق من المفتاح والمحاولة مرة أخرى.', 'en': 'Failed to initialize Gemini service. Please check the key and try again.' },
     geminiErrorGeneric: { 'ku-badini': 'پەیوەندی ب خزمەتا Gemini سەرنەکەفت.', 'ku-sorani': 'پەیوەندیکردن بە خزمەتگوزاری Gemini سەرکەوتوو نەبوو.', 'ku-kurmanji': 'Girêdana bi servîsa Gemini re bi ser neket.', 'ar': 'فشل الاتصال بخدمة Gemini.', 'en': 'Failed to connect to Gemini service.' },
     geminiErrorInvalidApiKey: { 'ku-badini': 'کلیلا API نە دروستە. تکایە پشکنینێ بکە.', 'ku-sorani': 'کلیلی API نادروستە. تکایە پشکنینی بۆ بکە.', 'ku-kurmanji': 'Mifteya API ne derbasdar e. Ji kerema xwe kontrol bike.', 'ar': 'مفتاح API غير صالح. يرجى التحقق منه.', 'en': 'API key not valid. Please check it.' },
+    // Language Modal
+    addLanguagesTitle: { 'ku-badini': 'زمانان زێدە بکە', 'ku-sorani': 'زیادکردنی زمانەکان', 'ku-kurmanji': 'Zimanan lê zêde bike', 'ar': 'إضافة لغات', 'en': 'Add Languages' },
+    searchLanguagesPlaceholder: { 'ku-badini': 'ل زمانان بگەڕە...', 'ku-sorani': 'بگەڕێ بۆ زمانەکان...', 'ku-kurmanji': 'Li zimanan bigere...', 'ar': 'ابحث عن اللغات...', 'en': 'Search for languages...' },
+    saveButton: { 'ku-badini': 'پاشکەفتن', 'ku-sorani': 'پاشەکەوتکردن', 'ku-kurmanji': 'Tomar bike', 'ar': 'حفظ', 'en': 'Save' },
+    cancelButton: { 'ku-badini': 'پاشگەزبوون', 'ku-sorani': 'هەڵوەشاندنەوە', 'ku-kurmanji': 'Betal bike', 'ar': 'إلغاء', 'en': 'Cancel' },
+    // Detected Language Display
+    detectedLangLabel: { 'ku-badini': 'زمانێ دەستنیشانکری', 'ku-sorani': 'زمانی دیاریکراو', 'ku-kurmanji': 'Zimanê tespîtkirî', 'ar': 'اللغة المكتشفة', 'en': 'Detected Language' },
     // Translateable language names
     lang_auto: { 'ku-badini': 'دەستنیشانکرنا ئۆتۆماتیکی', 'ku-sorani': 'دیاریکردنی ئۆتۆماتیکی', 'ku-kurmanji': 'Tesbîtkirina otomatîk', 'ar': 'اكتشاف اللغة تلقائياً', 'en': 'Auto-detect language' },
-    lang_en: { 'ku-badini': 'ئینگلیزی', 'ku-sorani': 'ئینگلیزی', 'ku-kurmanji': 'Îngilîzî', 'ar': 'الإنجليزية', 'en': 'English' },
-    lang_ar: { 'ku-badini': 'عەرەبی (فەرمی)', 'ku-sorani': 'عەرەبی (فەرمی)', 'ku-kurmanji': 'Erebî (Fasih)', 'ar': 'العربية (فصحى)', 'en': 'Arabic (Standard)' },
-    lang_ar_IQ: { 'ku-badini': 'عەرەبی (زاراڤێ عیراقی)', 'ku-sorani': 'عەرەبی (شێوەزاری عێراقی)', 'ku-kurmanji': 'Erebî (Zaravê Iraqî)', 'ar': 'العربية (لهجة عراقية)', 'en': 'Arabic (Iraqi dialect)' },
-    lang_ku_sorani: { 'ku-badini': 'کوردی (سۆرانی)', 'ku-sorani': 'کوردی (سۆرانی)', 'ku-kurmanji': 'Kurdî (Soranî)', 'ar': 'الكردية (سوراني)', 'en': 'Kurdish (Sorani)' },
-    lang_ku_badini: { 'ku-badini': 'کوردی (بادینی)', 'ku-sorani': 'کوردی (بادینی)', 'ku-kurmanji': 'Kurdî (Badînî)', 'ar': 'الكردية (باديني)', 'en': 'Kurdish (Badini)' },
-    lang_ku_kurmanji: { 'ku-badini': 'کوردی (کرمانجی)', 'ku-sorani': 'کوردی (کرمانجی)', 'ku-kurmanji': 'Kurdî (Kurmancî)', 'ar': 'الكردية (كرمانجي)', 'en': 'Kurdish (Kurmanji)' },
-    lang_fr: { 'ku-badini': 'فرەنسی', 'ku-sorani': 'فەرەنسی', 'ku-kurmanji': 'Fransî', 'ar': 'الفرنسية', 'en': 'French' },
-    lang_es: { 'ku-badini': 'ئیسپانی', 'ku-sorani': 'ئیسپانی', 'ku-kurmanji': 'Spanî', 'ar': 'الإسبانية', 'en': 'Spanish' },
-    lang_de: { 'ku-badini': 'ئەلمانی', 'ku-sorani': 'ئەڵمانی', 'ku-kurmanji': 'Elmanî', 'ar': 'الألمانية', 'en': 'German' },
-    lang_tr: { 'ku-badini': 'ترکی', 'ku-sorani': 'تورکی', 'ku-kurmanji': 'Tirkî', 'ar': 'التركية', 'en': 'Turkish' },
+    // ... other languages will be generated below
 };
+
+// Auto-generate translations for all languages using English as fallback
+ALL_LANGUAGES.forEach(lang => {
+    const key = `lang_${lang.code.replace(/-/g, '_')}`;
+    if (!translations[key]) {
+        translations[key] = {
+            'en': lang.name,
+            'ar': lang.name,
+            'ku-badini': lang.name,
+            'ku-sorani': lang.name,
+            'ku-kurmanji': lang.name
+        };
+    }
+});
+// Override specific language names that need better translations than just the English name
+Object.assign(translations.lang_en, { 'ku-badini': 'ئینگلیزی', 'ku-sorani': 'ئینگلیزی', 'ku-kurmanji': 'Îngilîzî', 'ar': 'الإنجليزية' });
+Object.assign(translations.lang_ar, { 'ku-badini': 'عەرەبی (فەرمی)', 'ku-sorani': 'عەرەبی (فەرمی)', 'ku-kurmanji': 'Erebî (Fasih)', 'ar': 'العربية (فصحى)' });
+Object.assign(translations.lang_ar_IQ, { 'ku-badini': 'عەرەبی (زاراڤێ عیراقی)', 'ku-sorani': 'عەرەبی (شێوەزاری عێراقی)', 'ku-kurmanji': 'Erebî (Zaravê Iraqî)', 'ar': 'العربية (لهجة عراقية)' });
+Object.assign(translations.lang_ku_sorani, { 'ku-badini': 'کوردی (سۆرانی)', 'ku-sorani': 'کوردی (سۆرانی)', 'ku-kurmanji': 'Kurdî (Soranî)', 'ar': 'الكردية (سوراني)' });
+Object.assign(translations.lang_ku_badini, { 'ku-badini': 'کوردی (بادینی)', 'ku-sorani': 'کوردی (بادینی)', 'ku-kurmanji': 'Kurdî (Badînî)', 'ar': 'الكردية (باديني)' });
+Object.assign(translations.lang_ku_kurmanji, { 'ku-badini': 'کوردی (کرمانجی)', 'ku-sorani': 'کوردی (کرمانجی)', 'ku-kurmanji': 'Kurdî (Kurmancî)', 'ar': 'الكردية (كرمانجي)' });
+Object.assign(translations.lang_fr, { 'ku-badini': 'فرەنسی', 'ku-sorani': 'فەرەنسی', 'ku-kurmanji': 'Fransî', 'ar': 'الفرنسية' });
+Object.assign(translations.lang_es, { 'ku-badini': 'ئیسپانی', 'ku-sorani': 'ئیسپانی', 'ku-kurmanji': 'Spanî', 'ar': 'الإسبانية' });
+Object.assign(translations.lang_de, { 'ku-badini': 'ئەلمانی', 'ku-sorani': 'ئەڵمانی', 'ku-kurmanji': 'Elmanî', 'ar': 'الألمانية' });
+Object.assign(translations.lang_tr, { 'ku-badini': 'ترکی', 'ku-sorani': 'تورکی', 'ku-kurmanji': 'Tirkî', 'ar': 'التركية' });
+
 
 function t(key) {
     const lang = state.uiLang;
@@ -167,10 +231,10 @@ Text to correct:
 const state = {
   geminiService: new GeminiService(),
   apiKeySet: false,
-  uiLang: 'ku-badini', // Default UI language
+  uiLang: 'ar', // Default UI language
   languages: [ 'auto', 'en', 'ar', 'ar-IQ', 'ku-sorani', 'ku-badini', 'ku-kurmanji', 'fr', 'es', 'de', 'tr' ],
   sourceLang: 'auto',
-  targetLang: 'ar-IQ',
+  targetLang: 'en',
   sourceText: '',
   translatedText: '',
   isLoading: false,
@@ -178,6 +242,7 @@ const state = {
   isCopied: false,
   history: [],
   isHistoryVisible: false,
+  detectedSourceLangName: null,
 };
 
 // --- DOM Elements ---
@@ -222,6 +287,14 @@ const dom = {
   clearSourceBtn: document.getElementById('clear-source-btn'),
   clearTranslatedBtn: document.getElementById('clear-translated-btn'),
   footerText: document.querySelector('footer p'),
+  addLangBtn: document.getElementById('add-lang-btn'),
+  addLangModal: document.getElementById('add-lang-modal'),
+  closeLangModalBtn: document.getElementById('close-lang-modal-btn'),
+  cancelLangModalBtn: document.getElementById('cancel-lang-modal-btn'),
+  saveLangBtn: document.getElementById('save-lang-btn'),
+  langSearchInput: document.getElementById('lang-search-input'),
+  langListContainer: document.getElementById('lang-list-container'),
+  detectedLangDisplay: document.getElementById('detected-language-display'),
 };
 
 // --- Render Functions ---
@@ -252,22 +325,22 @@ function applyTranslations() {
 }
 
 function populateLanguageDropdowns() {
-    const currentSource = dom.sourceLangSelect.value;
-    const currentTarget = dom.targetLangSelect.value;
+    const currentSource = dom.sourceLangSelect.value || state.sourceLang;
+    const currentTarget = dom.targetLangSelect.value || state.targetLang;
 
     dom.sourceLangSelect.innerHTML = '';
     dom.targetLangSelect.innerHTML = '';
     
     state.languages.forEach(code => {
-        const langName = t(`lang_${code.replace('-', '_')}`);
+        const langName = t(`lang_${code.replace(/-/g, '_')}`);
         dom.sourceLangSelect.add(new Option(langName, code));
         if (code !== 'auto') {
             dom.targetLangSelect.add(new Option(langName, code));
         }
     });
     
-    dom.sourceLangSelect.value = currentSource;
-    dom.targetLangSelect.value = currentTarget;
+    dom.sourceLangSelect.value = state.languages.includes(currentSource) ? currentSource : state.sourceLang;
+    dom.targetLangSelect.value = state.languages.includes(currentTarget) ? currentTarget : state.targetLang;
 }
 
 
@@ -279,7 +352,7 @@ function render() {
   dom.appView.classList.toggle('hidden', !state.apiKeySet);
   dom.apiStatusIndicator.classList.toggle('hidden', !state.apiKeySet);
   
-  // Language selectors value (already set in applyTranslations, but good to ensure)
+  // Language selectors value
   dom.sourceLangSelect.value = state.sourceLang;
   dom.targetLangSelect.value = state.targetLang;
 
@@ -289,6 +362,14 @@ function render() {
   }
   dom.sourceTextCounter.textContent = `${state.sourceText.length} / 5000`;
   dom.translatedTextP.textContent = state.translatedText;
+
+  // Detected language display
+  if (state.detectedSourceLangName) {
+    dom.detectedLangDisplay.textContent = `${t('detectedLangLabel')}: ${state.detectedSourceLangName}`;
+    dom.detectedLangDisplay.classList.remove('hidden');
+  } else {
+    dom.detectedLangDisplay.classList.add('hidden');
+  }
 
   // Visibility based on translation state
   dom.loadingSpinner.classList.toggle('hidden', !state.isLoading);
@@ -339,8 +420,8 @@ function renderHistory() {
     state.history.forEach(item => {
         const article = document.createElement('article');
         article.className = 'bg-slate-800/50 p-4 rounded-lg border border-slate-700 hover:border-cyan-700 transition-all group';
-        const sourceLangName = t(`lang_${item.sourceLang.replace('-', '_')}`);
-        const targetLangName = t(`lang_${item.targetLang.replace('-', '_')}`);
+        const sourceLangName = t(`lang_${item.sourceLang.replace(/-/g, '_')}`);
+        const targetLangName = t(`lang_${item.targetLang.replace(/-/g, '_')}`);
         
         article.innerHTML = `
             <header class="flex justify-between items-start text-sm text-slate-400 mb-3">
@@ -422,13 +503,14 @@ async function handleTranslation() {
 
   state.isLoading = true;
   state.translatedText = '';
+  state.detectedSourceLangName = null;
   render();
 
   try {
     let sourceLangCode = state.sourceLang;
     const arabicLanguageNamesForDetection = state.languages
         .filter(code => code !== 'auto')
-        .map(code => `"${translations[`lang_${code.replace('-', '_')}`]['ar']}"`);
+        .map(code => `"${translations[`lang_${code.replace(/-/g, '_')}`]['ar']}"`);
 
     if (sourceLangCode === 'auto') {
       const detectedLangArabicName = await state.geminiService.detectLanguage(text, arabicLanguageNamesForDetection);
@@ -437,11 +519,12 @@ async function handleTranslation() {
       if (!detectedLangEntry) {
         throw new Error(`Language "${detectedLangArabicName}" not supported or detection failed.`);
       }
-      sourceLangCode = detectedLangEntry[0].substring(5).replace('_','-');
+      sourceLangCode = detectedLangEntry[0].substring(5).replace(/_/g,'-');
+      state.detectedSourceLangName = t(`lang_${sourceLangCode.replace(/-/g, '_')}`);
     }
     
-    const sourceLangName = translations[`lang_${sourceLangCode.replace('-', '_')}`]['en']; // Use English name for prompt consistency
-    const targetLangName = translations[`lang_${state.targetLang.replace('-', '_')}`]['en'];
+    const sourceLangName = translations[`lang_${sourceLangCode.replace(/-/g, '_')}`]['en']; // Use English name for prompt consistency
+    const targetLangName = translations[`lang_${state.targetLang.replace(/-/g, '_')}`]['en'];
     
     const result = await state.geminiService.translateText(text, sourceLangName, targetLangName);
     state.translatedText = result;
@@ -480,7 +563,7 @@ async function handleSpellCheck() {
         if (sourceLangCode === 'auto') {
             const arabicLanguageNamesForDetection = state.languages
                 .filter(code => code !== 'auto')
-                .map(code => `"${translations[`lang_${code.replace('-', '_')}`]['ar']}"`);
+                .map(code => `"${translations[`lang_${code.replace(/-/g, '_')}`]['ar']}"`);
             
             const detectedLangArabicName = await state.geminiService.detectLanguage(text, arabicLanguageNamesForDetection);
             const detectedLangEntry = Object.entries(translations).find(([key, value]) => key.startsWith('lang_') && value.ar === detectedLangArabicName);
@@ -488,11 +571,11 @@ async function handleSpellCheck() {
             if (!detectedLangEntry) {
                 throw new Error(`Language "${detectedLangArabicName}" not supported or detection failed.`);
             }
-            sourceLangCode = detectedLangEntry[0].substring(5).replace('_', '-');
+            sourceLangCode = detectedLangEntry[0].substring(5).replace(/_/g, '-');
             state.sourceLang = sourceLangCode;
         }
 
-        const sourceLangName = translations[`lang_${sourceLangCode.replace('-', '_')}`]['en'];
+        const sourceLangName = translations[`lang_${sourceLangCode.replace(/-/g, '_')}`]['en'];
         const correctedText = await state.geminiService.spellCheckText(text, sourceLangName);
         
         if (state.sourceText !== correctedText) {
@@ -519,6 +602,7 @@ function swapLanguages() {
     if (state.sourceLang === 'auto') return;
     [state.sourceLang, state.targetLang] = [state.targetLang, state.sourceLang];
     [state.sourceText, state.translatedText] = [state.translatedText, state.sourceText];
+    state.detectedSourceLangName = null;
     render();
 }
 
@@ -542,12 +626,14 @@ function handleClearAll() {
     if (confirm(t('confirmClearAll'))) {
         state.sourceText = '';
         state.translatedText = '';
+        state.detectedSourceLangName = null;
         render();
     }
 }
 
 function handleClearSourceText() {
     state.sourceText = '';
+    state.detectedSourceLangName = null;
     render();
     dom.sourceTextarea.focus();
 }
@@ -572,6 +658,7 @@ function handleHistoryClick(event) {
             state.sourceText = item.sourceText;
             state.translatedText = item.translatedText;
             state.isHistoryVisible = false;
+            state.detectedSourceLangName = null;
             render();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -585,6 +672,62 @@ function handleHistoryClick(event) {
 function handleUiLangChange(event) {
     state.uiLang = event.target.value;
     localStorage.setItem('uiLang', state.uiLang);
+    render();
+}
+
+// --- Language Modal Logic ---
+function openLangModal() {
+    populateLangModal();
+    dom.addLangModal.classList.remove('hidden');
+    dom.langSearchInput.focus();
+}
+
+function closeLangModal() {
+    dom.addLangModal.classList.add('hidden');
+    dom.langSearchInput.value = '';
+}
+
+function populateLangModal(filter = '') {
+    dom.langListContainer.innerHTML = '';
+    const filterText = filter.toLowerCase();
+
+    ALL_LANGUAGES.forEach(lang => {
+        const langName = t(`lang_${lang.code.replace(/-/g, '_')}`);
+        const englishName = ALL_LANGUAGES.find(l => l.code === lang.code)?.name || '';
+
+        if (!langName.toLowerCase().includes(filterText) && !englishName.toLowerCase().includes(filterText)) {
+            return;
+        }
+
+        const isChecked = state.languages.includes(lang.code);
+        const label = document.createElement('label');
+        label.className = 'flex items-center gap-3 p-2 rounded-md hover:bg-slate-700 cursor-pointer transition';
+        label.innerHTML = `
+            <input type="checkbox" value="${lang.code}" ${isChecked ? 'checked' : ''}
+                   class="h-5 w-5 rounded border-slate-500 bg-slate-600 text-cyan-500 focus:ring-2 focus:ring-offset-slate-800 focus:ring-cyan-500">
+            <span class="text-slate-200">${langName}</span>
+        `;
+        dom.langListContainer.appendChild(label);
+    });
+}
+
+function handleSaveLanguages() {
+    const selectedLangs = [...dom.langListContainer.querySelectorAll('input:checked')].map(input => input.value);
+    
+    // Ensure 'auto' is always first
+    state.languages = ['auto', ...selectedLangs];
+
+    // Check if current source/target languages are still in the list
+    if (!state.languages.includes(state.sourceLang)) {
+        state.sourceLang = 'auto';
+    }
+    if (!state.languages.includes(state.targetLang)) {
+        state.targetLang = state.languages[1] || 'en'; // Fallback to first available lang or english
+    }
+    
+    saveLanguages();
+    populateLanguageDropdowns();
+    closeLangModal();
     render();
 }
 
@@ -616,6 +759,25 @@ function addHistoryItem(item) {
     saveHistory();
 }
 
+function loadLanguages() {
+    try {
+        const storedLangs = localStorage.getItem('translatorLanguages');
+        if (storedLangs) {
+            state.languages = JSON.parse(storedLangs);
+        }
+    } catch (e) {
+        console.error('Failed to load languages', e);
+    }
+}
+
+function saveLanguages() {
+    try {
+        localStorage.setItem('translatorLanguages', JSON.stringify(state.languages));
+    } catch(e) {
+        console.error('Failed to save languages', e);
+    }
+}
+
 // --- Initialization ---
 function init() {
     // Populate UI language dropdown
@@ -627,10 +789,17 @@ function init() {
     const storedUiLang = localStorage.getItem('uiLang');
     if (storedUiLang && uiLanguages.some(l => l.code === storedUiLang)) {
         state.uiLang = storedUiLang;
+    } else {
+      // Set default based on browser lang if available
+      const browserLang = navigator.language.split('-')[0];
+      if (uiLanguages.some(l => l.code.startsWith(browserLang))) {
+        state.uiLang = uiLanguages.find(l => l.code.startsWith(browserLang)).code;
+      }
     }
     dom.uiLangSelect.value = state.uiLang;
     
     loadHistory();
+    loadLanguages();
     const storedKey = localStorage.getItem('geminiApiKey');
     if (storedKey && state.geminiService.initialize(storedKey)) {
         state.apiKeySet = true;
@@ -639,11 +808,20 @@ function init() {
     // Event listeners
     dom.apiKeyForm.addEventListener('submit', saveApiKey);
     dom.uiLangSelect.addEventListener('change', handleUiLangChange);
-    dom.sourceLangSelect.addEventListener('change', e => { state.sourceLang = e.target.value; render(); });
+    dom.sourceLangSelect.addEventListener('change', e => { 
+      state.sourceLang = e.target.value; 
+      if (state.sourceLang !== 'auto') {
+        state.detectedSourceLangName = null;
+      }
+      render(); 
+    });
     dom.targetLangSelect.addEventListener('change', e => { state.targetLang = e.target.value; });
     dom.swapLanguagesBtn.addEventListener('click', swapLanguages);
     dom.sourceTextarea.addEventListener('input', e => { 
         state.sourceText = e.target.value;
+        if (!state.sourceText.trim()) {
+            state.detectedSourceLangName = null;
+        }
         render();
     });
     dom.translateBtn.addEventListener('click', handleTranslation);
@@ -666,6 +844,14 @@ function init() {
         }
     });
     dom.historyListContainer.addEventListener('click', handleHistoryClick);
+
+    // Modal listeners
+    dom.addLangBtn.addEventListener('click', openLangModal);
+    dom.closeLangModalBtn.addEventListener('click', closeLangModal);
+    dom.cancelLangModalBtn.addEventListener('click', closeLangModal);
+    dom.saveLangBtn.addEventListener('click', handleSaveLanguages);
+    dom.langSearchInput.addEventListener('input', e => populateLangModal(e.target.value));
+
 
     // Initial render
     render();
