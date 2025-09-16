@@ -46,6 +46,16 @@ class GeminiService {
     await this.generateContent('hi', 0, 0);
   }
 
+  async detectLanguage(text, languageNames) {
+    const prompt = `You are a language detection expert. Identify the language of the following text. 
+Respond ONLY with the language name in Arabic, exactly as it appears in this list if possible: [${languageNames.join(', ')}]. 
+Do not add any introductions, explanations, or quotation marks.
+
+Text:
+"${text}"`;
+    return this.generateContent(prompt, 0.1, 0);
+  }
+
   async translateText(text, sourceLangName, targetLangName) {
     const prompt = `You are a professional translator. Translate the following text from "${sourceLangName}" to "${targetLangName}". Provide only the translated text, without any additional explanations, introductions, or quotation marks.
     
@@ -68,6 +78,7 @@ const state = {
   geminiService: new GeminiService(),
   apiKeySet: false,
   languages: [
+    { code: 'auto', name: 'اكتشاف اللغة تلقائياً' },
     { code: 'en', name: 'الإنجليزية' },
     { code: 'ar', name: 'العربية (فصحى)' },
     { code: 'ar-IQ', name: 'العربية (لهجة عراقية)' },
@@ -79,7 +90,7 @@ const state = {
     { code: 'de', name: 'الألمانية' },
     { code: 'tr', name: 'التركية' },
   ],
-  sourceLang: 'en',
+  sourceLang: 'auto',
   targetLang: 'ar-IQ',
   sourceText: '',
   translatedText: '',
@@ -153,6 +164,10 @@ function render() {
   dom.copyContainer.classList.toggle('hidden', !state.translatedText);
 
   // Buttons state
+  const isAutoDetect = state.sourceLang === 'auto';
+  dom.swapLanguagesBtn.disabled = isAutoDetect;
+  dom.swapLanguagesBtn.title = isAutoDetect ? 'لا يمكن تبديل اللغات عند استخدام اكتشاف اللغة' : 'تبديل اللغات';
+
   dom.translateBtn.disabled = state.isLoading || !state.sourceText.trim();
   dom.translateBtnContent.classList.toggle('hidden', state.isLoading);
   dom.translateBtnLoading.classList.toggle('hidden', !state.isLoading);
@@ -269,7 +284,26 @@ async function handleTranslation() {
   render();
 
   try {
-    const sourceLangName = state.languages.find(l => l.code === state.sourceLang)?.name;
+    let sourceLangCode = state.sourceLang;
+    let sourceLangName;
+
+    if (sourceLangCode === 'auto') {
+      const languageNamesForDetection = state.languages
+        .filter(lang => lang.code !== 'auto')
+        .map(lang => `"${lang.name}"`);
+      
+      const detectedLangName = await state.geminiService.detectLanguage(text, languageNamesForDetection);
+      const detectedLang = state.languages.find(l => l.name === detectedLangName);
+
+      if (!detectedLang) {
+        throw new Error(`Language "${detectedLangName}" not supported or detection failed.`);
+      }
+      sourceLangCode = detectedLang.code;
+      sourceLangName = detectedLang.name;
+    } else {
+      sourceLangName = state.languages.find(l => l.code === sourceLangCode)?.name;
+    }
+    
     const targetLangName = state.languages.find(l => l.code === state.targetLang)?.name;
     
     const result = await state.geminiService.translateText(text, sourceLangName, targetLangName);
@@ -278,7 +312,7 @@ async function handleTranslation() {
     const newHistoryItem = {
       sourceText: text,
       translatedText: result,
-      sourceLang: state.sourceLang,
+      sourceLang: sourceLangCode,
       targetLang: state.targetLang,
       sourceLangName,
       targetLangName,
@@ -287,7 +321,11 @@ async function handleTranslation() {
     addHistoryItem(newHistoryItem);
 
   } catch (e) {
-    displayError('حدث خطأ أثناء الترجمة. يرجى المحاولة مرة أخرى.');
+    if (e.message.includes("not supported")) {
+        displayError('تعذر اكتشاف اللغة أو أنها غير مدعومة. يرجى تحديدها يدوياً.');
+    } else {
+        displayError('حدث خطأ أثناء الترجمة. يرجى المحاولة مرة أخرى.');
+    }
     console.error(e);
   } finally {
     state.isLoading = false;
@@ -303,7 +341,24 @@ async function handleSpellCheck() {
     render();
 
     try {
-        const sourceLangName = state.languages.find(l => l.code === state.sourceLang)?.name;
+        let sourceLangName;
+        if (state.sourceLang === 'auto') {
+            const languageNamesForDetection = state.languages
+                .filter(lang => lang.code !== 'auto')
+                .map(lang => `"${lang.name}"`);
+            
+            const detectedLangName = await state.geminiService.detectLanguage(text, languageNamesForDetection);
+            const detectedLang = state.languages.find(l => l.name === detectedLangName);
+
+            if (!detectedLang) {
+                throw new Error(`Language "${detectedLangName}" not supported or detection failed.`);
+            }
+            sourceLangName = detectedLang.name;
+            state.sourceLang = detectedLang.code;
+        } else {
+            sourceLangName = state.languages.find(l => l.code === state.sourceLang)?.name;
+        }
+
         const correctedText = await state.geminiService.spellCheckText(text, sourceLangName);
         
         if (state.sourceText !== correctedText) {
@@ -314,7 +369,11 @@ async function handleSpellCheck() {
         state.sourceText = correctedText;
 
     } catch (e) {
-        displayError('حدث خطأ أثناء التدقيق الإملائي. يرجى المحاولة مرة أخرى.');
+        if (e.message.includes("not supported")) {
+            displayError('تعذر اكتشاف اللغة أو أنها غير مدعومة. يرجى تحديدها يدوياً.');
+        } else {
+            displayError('حدث خطأ أثناء التدقيق الإملائي. يرجى المحاولة مرة أخرى.');
+        }
         console.error(e);
     } finally {
         state.isCheckingSpelling = false;
@@ -323,6 +382,7 @@ async function handleSpellCheck() {
 }
 
 function swapLanguages() {
+    if (state.sourceLang === 'auto') return;
     [state.sourceLang, state.targetLang] = [state.targetLang, state.sourceLang];
     [state.sourceText, state.translatedText] = [state.translatedText, state.sourceText];
     render();
@@ -412,15 +472,17 @@ function addHistoryItem(item) {
 function init() {
     // Populate language dropdowns
     state.languages.forEach(lang => {
-        const option1 = new Option(lang.name, lang.code);
-        const option2 = new Option(lang.name, lang.code);
-        dom.sourceLangSelect.add(option1);
-        dom.targetLangSelect.add(option2);
+        dom.sourceLangSelect.add(new Option(lang.name, lang.code));
+    });
+    state.languages.forEach(lang => {
+        if (lang.code !== 'auto') {
+            dom.targetLangSelect.add(new Option(lang.name, lang.code));
+        }
     });
 
     // Event listeners
     dom.apiKeyForm.addEventListener('submit', saveApiKey);
-    dom.sourceLangSelect.addEventListener('change', e => { state.sourceLang = e.target.value; });
+    dom.sourceLangSelect.addEventListener('change', e => { state.sourceLang = e.target.value; render(); });
     dom.targetLangSelect.addEventListener('change', e => { state.targetLang = e.target.value; });
     dom.swapLanguagesBtn.addEventListener('click', swapLanguages);
     dom.sourceTextarea.addEventListener('input', e => { 
