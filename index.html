@@ -14,19 +14,25 @@
   <!-- Main Application View -->
   <div id="app-view" class="hidden">
     <div class="min-h-screen bg-gradient-to-br from-slate-900 to-gray-800 text-white flex flex-col items-center sm:justify-center p-2 sm:p-4 animate-fade-in">
-      <header class="text-center mb-6 sm:mb-8">
+      <header class="text-center mb-6 sm:mb-8 w-full max-w-4xl relative">
+        
+        <div class="absolute top-0 left-4 z-10">
+          <label for="ui-lang-select" class="sr-only" data-translate-key="uiLangLabel">تغيير اللغة</label>
+          <select id="ui-lang-select" class="bg-slate-700/60 border border-slate-600 rounded-lg py-1 px-2 text-sm text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"></select>
+        </div>
+
         <div class="flex items-center justify-center gap-3 sm:gap-4">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 sm:h-12 sm:w-12 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802" />
           </svg>
-          <h1 class="text-3xl md:text-5xl font-bold tracking-tight">مترجم اللغات الفوري</h1>
-          <div id="api-status-indicator" class="hidden" title="مفتاح API نشط">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <h1 class="text-3xl md:text-5xl font-bold tracking-tight" data-translate-key="mainTitle">مترجم اللغات الفوري</h1>
+          <div id="api-status-indicator" class="hidden" data-translate-title="apiKeyActive">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-400" fill="none" viewBox="0 0 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
         </div>
-        <p class="text-base sm:text-lg text-slate-400 mt-2">ترجمة دقيقة وفورية بين اللغات واللهجات المختلفة</p>
+        <p class="text-base sm:text-lg text-slate-400 mt-2" data-translate-key="mainSubtitle">ترجمة دقيقة وفورية بين اللغات واللهجات المختلفة</p>
       </header>
 
       <main class="w-full max-w-4xl bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8">
@@ -34,12 +40,12 @@
         <!-- Language Selectors -->
         <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center mb-6">
           <div class="w-full">
-            <label for="source-lang" class="block text-sm font-medium text-slate-300 mb-2">من:</label>
+            <label for="source-lang" class="block text-sm font-medium text-slate-300 mb-2" data-translate-key="fromLabel">من:</label>
             <select id="source-lang" name="source-lang" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-2 px-3 text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"></select>
           </div>
 
           <div class="flex justify-center mt-0 md:mt-7">
-            <button id="swap-languages-btn" title="تبديل اللغات" class="p-2 rounded-full bg-slate-700 hover:bg-cyan-500 text-slate-300 hover:text-white transition-all duration-300 transform hover:rotate-180 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500">
+            <button id="swap-languages-btn" data-translate-title="swapButtonTitle" class="p-2 rounded-full bg-slate-700 hover:bg-cyan-500 text-slate-300 hover:text-white transition-all duration-300 transform hover:rotate-180 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
               </svg>
@@ -47,7 +53,7 @@
           </div>
           
           <div class="w-full">
-            <label for="target-lang" class="block text-sm font-medium text-slate-300 mb-2">إلى:</label>
+            <label for="target-lang" class="block text-sm font-medium text-slate-300 mb-2" data-translate-key="toLabel">إلى:</label>
             <select id="target-lang" name="target-lang" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-2 px-3 text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"></select>
           </div>
         </div>
@@ -55,8 +61,8 @@
         <!-- Text Areas -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div class="relative">
-            <textarea id="source-text" placeholder="اكتب النص هنا..." class="w-full h-36 sm:h-48 md:h-64 p-3 sm:p-4 bg-slate-800/60 border border-slate-700 rounded-lg resize-none text-base sm:text-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"></textarea>
-            <button id="clear-source-btn" title="مسح النص" class="hidden absolute top-3 right-3 p-1.5 rounded-full bg-slate-700/50 hover:bg-red-600/70 text-slate-300 hover:text-white transition-all">
+            <textarea id="source-text" data-translate-placeholder="sourcePlaceholder" class="w-full h-36 sm:h-48 md:h-64 p-3 sm:p-4 bg-slate-800/60 border border-slate-700 rounded-lg resize-none text-base sm:text-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"></textarea>
+            <button id="clear-source-btn" data-translate-title="clearSourceButtonTitle" class="hidden absolute top-3 right-3 p-1.5 rounded-full bg-slate-700/50 hover:bg-red-600/70 text-slate-300 hover:text-white transition-all">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -70,8 +76,8 @@
             <div id="translation-output-container">
               <p id="translated-text" class="whitespace-pre-wrap"></p>
               <div id="copy-container" class="hidden absolute top-3 left-3 flex items-center gap-2">
-                <span id="copy-success-msg" class="hidden text-sm text-green-400 transition-opacity duration-300">تم النسخ!</span>
-                <button id="copy-btn" title="نسخ إلى الحافظة" class="p-1.5 rounded-md bg-slate-700/50 hover:bg-cyan-600/70 text-slate-300 hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500 disabled:cursor-wait disabled:hover:bg-slate-700/50">
+                <span id="copy-success-msg" class="hidden text-sm text-green-400 transition-opacity duration-300" data-translate-key="copiedSuccessMessage">تم النسخ!</span>
+                <button id="copy-btn" data-translate-title="copyButtonTitle" class="p-1.5 rounded-md bg-slate-700/50 hover:bg-cyan-600/70 text-slate-300 hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500 disabled:cursor-wait disabled:hover:bg-slate-700/50">
                   <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
@@ -80,13 +86,13 @@
                   </svg>
                 </button>
               </div>
-              <button id="clear-translated-btn" title="مسح الترجمة" class="hidden absolute top-3 right-3 p-1.5 rounded-full bg-slate-700/50 hover:bg-red-600/70 text-slate-300 hover:text-white transition-all">
+              <button id="clear-translated-btn" data-translate-title="clearTranslatedButtonTitle" class="hidden absolute top-3 right-3 p-1.5 rounded-full bg-slate-700/50 hover:bg-red-600/70 text-slate-300 hover:text-white transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <span id="translation-placeholder" class="text-slate-500">الترجمة...</span>
+            <span id="translation-placeholder" class="text-slate-500" data-translate-key="translationPlaceholder">الترجمة...</span>
           </div>
         </div>
         
@@ -101,11 +107,11 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 sm:h-6 w-5 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span>ترجمة</span>
+                <span data-translate-key="translateButton">ترجمة</span>
               </span>
               <span id="translate-btn-loading" class="hidden items-center justify-center gap-2">
                 <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>جاري الترجمة...</span>
+                <span data-translate-key="translatingButton">جاري الترجمة...</span>
               </span>
             </button>
             
@@ -114,11 +120,11 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 sm:h-6 w-5 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>تدقيق إملائي</span>
+                <span data-translate-key="spellCheckButton">تدقيق إملائي</span>
               </span>
               <span id="spell-check-btn-loading" class="hidden items-center justify-center gap-2">
                 <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>جاري التدقيق...</span>
+                <span data-translate-key="spellCheckingButton">جاري التدقيق...</span>
               </span>
             </button>
 
@@ -126,7 +132,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 sm:h-6 w-5 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-                <span>مسح الكل</span>
+                <span data-translate-key="clearAllButton">مسح الكل</span>
             </button>
             
           </div>
@@ -141,13 +147,13 @@
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
-              <span>عرض سجل الترجمة</span>
+              <span data-translate-key="showHistory">عرض سجل الترجمة</span>
             </span>
             <span id="hide-history-content" class="hidden inline-flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
               </svg>
-              <span>إخفاء سجل الترجمة</span>
+              <span data-translate-key="hideHistory">إخفاء سجل الترجمة</span>
             </span>
           </button>
         </div>
@@ -155,17 +161,17 @@
         <!-- History Section -->
         <section id="history-section" class="hidden mt-8 border-t border-white/10 pt-6 animate-fade-in">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-semibold text-slate-200">سجل الترجمة</h2>
+            <h2 class="text-2xl font-semibold text-slate-200" data-translate-key="historyTitle">سجل الترجمة</h2>
             <button id="clear-history-btn" class="hidden inline-flex items-center gap-1 text-sm text-red-400 hover:text-red-300 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 rounded-md px-2 py-1">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              <span>مسح السجل</span>
+              <span data-translate-key="clearHistory">مسح السجل</span>
             </button>
           </div>
       
           <div id="history-empty-msg" class="hidden text-center text-slate-400 py-8 bg-slate-800/30 rounded-lg">
-            <p>لا يوجد سجل ترجمة حتى الآن.</p>
+            <p data-translate-key="historyEmpty">لا يوجد سجل ترجمة حتى الآن.</p>
           </div>
           <div id="history-list-container" class="space-y-4 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
             <!-- History items will be injected here by JS -->
@@ -187,8 +193,8 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
-          <h2 class="mt-4 text-2xl font-bold text-white">مطلوب مفتاح Gemini API</h2>
-          <p class="mt-2 text-sm text-slate-400">
+          <h2 class="mt-4 text-2xl font-bold text-white" data-translate-key="apiKeyTitle">مطلوب مفتاح Gemini API</h2>
+          <p class="mt-2 text-sm text-slate-400" data-translate-key="apiKeyDescription">
             لاستخدام المترجم، يرجى إدخال مفتاح Gemini API الخاص بك. سيتم حفظه بأمان في متصفحك للاستخدامات المستقبلية.
           </p>
         </div>
@@ -196,7 +202,7 @@
           <div>
             <label for="api-key-input" class="sr-only">Gemini API Key</label>
             <input id="api-key-input" name="api-key" type="password"
-                   placeholder="أدخل مفتاح API هنا"
+                   data-translate-placeholder="apiKeyInputPlaceholder"
                    class="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-3 px-4 text-white text-center focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition" />
           </div>
 
@@ -205,12 +211,12 @@
           <div class="mt-6">
             <button type="submit"
                     class="w-full px-8 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 text-white font-bold rounded-lg text-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-500/50 flex items-center justify-center gap-2">
-              <span>حفظ ومتابعة</span>
+              <span data-translate-key="apiKeySaveButton">حفظ ومتابعة</span>
             </button>
           </div>
         </form>
         <p class="mt-6 text-xs text-slate-500 text-center">
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline">
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline" data-translate-key="apiKeyGetLink">
             يمكنك الحصول على مفتاح API من Google AI Studio.
           </a>
         </p>
