@@ -243,7 +243,6 @@ const state = {
   history: [],
   isHistoryVisible: false,
   detectedSourceLangName: null,
-  debounceTimeoutId: null,
 };
 
 // --- DOM Elements ---
@@ -495,8 +494,6 @@ async function saveApiKey(event) {
 }
 
 async function handleTranslation() {
-  if (state.isLoading) return;
-
   const text = state.sourceText;
   if (!text.trim()) {
     state.translatedText = '';
@@ -678,24 +675,6 @@ function handleUiLangChange(event) {
     render();
 }
 
-function handleSourceTextInput(event) {
-    state.sourceText = event.target.value;
-    clearTimeout(state.debounceTimeoutId);
-
-    if (!state.sourceText.trim()) {
-        state.translatedText = '';
-        state.detectedSourceLangName = null;
-    }
-
-    render(); // Render immediately to update char count and clear button.
-
-    if (state.sourceText.trim()) {
-        state.debounceTimeoutId = setTimeout(() => {
-            handleTranslation();
-        }, 800);
-    }
-}
-
 // --- Language Modal Logic ---
 function openLangModal() {
     populateLangModal();
@@ -835,24 +814,16 @@ function init() {
         state.detectedSourceLangName = null;
       }
       render(); 
-      if (state.sourceText.trim()) {
-        handleTranslation();
-      }
     });
-    dom.targetLangSelect.addEventListener('change', e => { 
-        state.targetLang = e.target.value; 
+    dom.targetLangSelect.addEventListener('change', e => { state.targetLang = e.target.value; });
+    dom.swapLanguagesBtn.addEventListener('click', swapLanguages);
+    dom.sourceTextarea.addEventListener('input', e => { 
+        state.sourceText = e.target.value;
+        if (!state.sourceText.trim()) {
+            state.detectedSourceLangName = null;
+        }
         render();
-        if (state.sourceText.trim()) {
-            handleTranslation();
-        }
     });
-    dom.swapLanguagesBtn.addEventListener('click', () => {
-        swapLanguages();
-        if (state.sourceText.trim()) {
-            handleTranslation();
-        }
-    });
-    dom.sourceTextarea.addEventListener('input', handleSourceTextInput);
     dom.translateBtn.addEventListener('click', handleTranslation);
     dom.spellCheckBtn.addEventListener('click', handleSpellCheck);
     dom.clearAllBtn.addEventListener('click', handleClearAll);
